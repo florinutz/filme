@@ -1,8 +1,7 @@
 package subcommands
 
 import (
-	"fmt"
-	"os"
+	log "github.com/sirupsen/logrus"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -30,12 +29,13 @@ to quickly create a Cobra application.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.WithError(err).Fatal()
 	}
 }
 
 func init() {
+	log.SetLevel(log.InfoLevel)
+
 	cobra.OnInitialize(initConfig)
 
 	// Here you will define your flags and configuration settings.
@@ -57,8 +57,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.WithError(err).Fatal()
 		}
 
 		// Search config in home directory with name ".filme" (without extension).
@@ -70,6 +69,6 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.WithField("config_file", viper.ConfigFileUsed()).Debug("Using config file")
 	}
 }
