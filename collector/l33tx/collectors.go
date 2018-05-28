@@ -5,6 +5,8 @@ import (
 
 	"strings"
 
+	"sync"
+
 	"github.com/gocolly/colly"
 	collyExtensions "github.com/gocolly/colly/extensions"
 	log "github.com/sirupsen/logrus"
@@ -17,11 +19,13 @@ var (
 	ListCollector    *colly.Collector
 	DetailsCollector *colly.Collector
 	Torrents         collector.Torrents
+	mutex            *sync.Mutex
 )
 
 func init() {
 	ListCollector = NewListCollector()
 	DetailsCollector = NewDetailsCollector(ListCollector)
+	mutex = &sync.Mutex{}
 }
 
 func NewListCollector() *colly.Collector {
@@ -39,9 +43,14 @@ func NewDetailsCollector(listCollector *colly.Collector) *colly.Collector {
 	detailsCollector := listCollector.Clone()
 	detailsCollector.OnHTML(".box-info-heading h1", titleLookup)
 	detailsCollector.OnHTML("a[href]", magnetLookup)
+	detailsCollector.OnResponse(responseHandler)
 	detailsCollector.OnScraped(onScraped)
 
 	return detailsCollector
+}
+
+func responseHandler(r *colly.Response) {
+	mutex.Lock()
 }
 
 // onListItemHandler parses the  list and launches a request for each item page
@@ -79,6 +88,8 @@ func magnetLookup(e *colly.HTMLElement) {
 
 // onScraped assembles and collects the Torrent struct at the end
 func onScraped(r *colly.Response) {
+	defer mutex.Unlock()
+
 	loggerWithURL := log.WithField("url", r.Request.URL)
 
 	title := r.Ctx.Get(collector.CtxKeyTitle)
