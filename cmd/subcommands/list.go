@@ -1,34 +1,57 @@
 package subcommands
 
 import (
-	"fmt"
+	"text/template"
 
+	"os"
+
+	"github.com/fatih/color"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"gitlab.com/phlo/filme/collector/l33tx"
+	"gitlab.com/phlo/filme/collector/coll33tx"
 )
-
-// listCmd represents the list command
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "Lists",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		l33tx.ListCollector.Visit("https://1337x.to/popular-movies")
-		l33tx.ListCollector.Wait()
-
-		torrents := l33tx.Torrents
-		fmt.Printf("Found %d torrents:\n\n", len(torrents))
-		for _, torrent := range torrents {
-			fmt.Printf("%s\n\t%s\n\t%s\n\n", torrent.Title, torrent.FoundOn, torrent.Magnet)
-		}
-	},
-}
 
 func init() {
 	rootCmd.AddCommand(listCmd)
+}
+
+var (
+	highlight = color.New(color.FgBlue)
+
+	filmTemplate = template.New("film").Funcs(template.FuncMap{
+		"highlight": highlight.Sprint,
+		"highlightPrefix": func(prefixLength int, input string) string {
+			return highlight.Sprint(input[:prefixLength]) + input[prefixLength:]
+		},
+	})
+
+	parsedTemplate = template.Must(filmTemplate.Parse(`
+{{ .Title | highlight }}
+  {{ .Magnet | highlightPrefix 6 }}
+`))
+
+	listCmd = &cobra.Command{
+		Use:   "list",
+		Short: "Lists l33t films",
+		Long:  `Handles 1337x.to listings and torrent detail pages.`,
+
+		Run: func(cmd *cobra.Command, args []string) {
+			list := coll33tx.NewListCollector(onListItemFound)
+			list.Visit("https://1337x.to/popular-movies")
+			list.Wait()
+		},
+	}
+)
+
+func onListItemFound(item coll33tx.ListItem) {
+	log.WithField("item", item).Debug("list item found")
+	detailsCollector := coll33tx.NewDetailsPageCollector(onTorrentFound)
+	err := detailsCollector.Visit(item.Href)
+	if err != nil {
+		log.WithError(err).Warn("Visit error")
+	}
+}
+
+func onTorrentFound(torrent coll33tx.L33tTorrent) {
+	parsedTemplate.Execute(os.Stdout, torrent)
 }

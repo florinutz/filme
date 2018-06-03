@@ -1,4 +1,4 @@
-package collector
+package coll33tx
 
 import (
 	"time"
@@ -7,21 +7,21 @@ import (
 	"net/http"
 
 	"github.com/gocolly/colly"
+	collyExtensions "github.com/gocolly/colly/extensions"
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	CtxKeyMagnet = "magnet"
-	CtxKeyTitle  = "title"
-)
+const Domain = "1337x.to"
 
 // Configure adds common configs for all filme Collectors
 func Configure(c *colly.Collector) {
-	for _, option := range []func(collector *colly.Collector){
-		colly.MaxDepth(2),
+	options := []func(collector *colly.Collector){
+		colly.MaxDepth(1),
 		colly.Async(true),
 		colly.CacheDir("/tmp/cache"),
-	} {
+	}
+
+	for _, option := range options {
 		option(c)
 	}
 
@@ -38,7 +38,7 @@ func Configure(c *colly.Collector) {
 		ExpectContinueTimeout: 1 * time.Second,
 	})
 
-	// Rotate socks5 proxies
+	//Rotate socks5 proxies
 	//rp, err := proxy.RoundRobinProxySwitcher("sockss5://wOBzsRUmerF:A7691RHzprQ@ams.socks.ipvanish.com")
 	//if err != nil {
 	//	log.WithError(err).Fatal("Couldn't use the socks5 proxy")
@@ -68,4 +68,18 @@ func Configure(c *colly.Collector) {
 			"response": *r,
 		}).Warn("Crawling error!")
 	})
+}
+
+func getCollyCollector(options ...func(collector *colly.Collector)) *colly.Collector {
+	c := colly.NewCollector(options...)
+
+	c.AllowedDomains = []string{Domain}
+	c.UserAgent = "filme finder"
+
+	collyExtensions.RandomUserAgent(c)
+	collyExtensions.Referrer(c)
+
+	Configure(c)
+
+	return c
 }
