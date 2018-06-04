@@ -37,7 +37,10 @@ var (
 
 		Run: func(cmd *cobra.Command, args []string) {
 			list := coll33tx.NewListCollector(onListItemFound)
-			list.Visit("https://1337x.to/popular-movies")
+			err := list.Visit("https://1337x.to/popular-movies")
+			if err != nil {
+				log.WithError(err).Warn("Visit error")
+			}
 			list.Wait()
 		},
 	}
@@ -45,11 +48,12 @@ var (
 
 func onListItemFound(item coll33tx.ListItem) {
 	log.WithField("item", item).Debug("list item found")
-	detailsCollector := coll33tx.NewDetailsPageCollector(onTorrentFound)
-	err := detailsCollector.Visit(item.Href)
+	details := coll33tx.NewDetailsPageCollector(onTorrentFound)
+	err := details.Visit(item.Href)
 	if err != nil {
 		log.WithError(err).Warn("Visit error")
 	}
+	details.Wait()
 }
 
 func onTorrentFound(torrent coll33tx.L33tTorrent) {

@@ -5,15 +5,19 @@ import (
 	"strings"
 	"sync"
 
+	"bytes"
+
+	"errors"
+
+	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
-	log "github.com/sirupsen/logrus"
 )
 
 // L33tTorrent represents the data onItemFound on a torrent details page
 type L33tTorrent struct {
+	Title        string
 	Magnet       string
 	FoundOn      *url.URL
-	Title        string
 	Genres       []string
 	Description  string
 	Category     string
@@ -24,7 +28,7 @@ type L33tTorrent struct {
 	LastChecked  string
 	DateUploaded string
 	Seeders      int
-	Leechers     int
+	Leeches      int
 }
 
 // TorrentFoundCallback is the type the callback func that's be called when a torrent was onItemFound
@@ -52,20 +56,13 @@ func NewDetailsPageCollector(found TorrentFoundCallback, options ...func(*colly.
 		torrent:   L33tTorrent{},
 	}
 
-	col.Collector.OnHTML(".box-info-heading h1", col.Title)
-	col.Collector.OnHTML("a[href]", col.Magnet)
 	col.Collector.OnResponse(col.OnResponse)
 	col.Collector.OnScraped(col.OnScraped)
 
 	return &col
 }
 
-// titleLookup gets the title from the details page
-func (c *detailsCollector) Title(e *colly.HTMLElement) {
-	c.torrent.Title = e.Text
-}
-
-// magnetLookup gets the magnet link from the details page
+// Magnet gets the magnet link from the details page
 func (c *detailsCollector) Magnet(e *colly.HTMLElement) {
 	if !strings.HasPrefix(e.Attr("href"), "magnet") {
 		return
@@ -74,26 +71,37 @@ func (c *detailsCollector) Magnet(e *colly.HTMLElement) {
 }
 
 func (c *detailsCollector) OnResponse(r *colly.Response) {
-	mutex.Lock()
+	c.torrent.fromResponse(r)
 }
 
 // OnScraped assembles and collects the Torrent struct at the end
 func (c *detailsCollector) OnScraped(r *colly.Response) {
+	c.found(c.torrent)
+}
+
+func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {
+	mutex.Lock()
 	defer mutex.Unlock()
 
-	loggerWithURL := log.WithField("url", r.Request.URL)
-
-	if c.torrent.Title == "" {
-		loggerWithURL.Warn("The title was not harvested properly")
+	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
+	if err != nil {
+		return []error{err}
 	}
 
-	if c.torrent.Magnet == "" {
-		loggerWithURL.Warn("The magnet was not harvested properly")
+	if title := doc.Find(".box-info-heading h1"); title.Nodes == nil {
+		errs = append(errs, errors.New("missing title"))
+	} else {
+		torrent.Title = title.Text()
 	}
 
-	if c.torrent.Category == "" {
-		loggerWithURL.Warn("The category was not harvested properly")
+	if links := doc.Find("a[href]").FilterFunction(func(_ int, s *goquery.Selection) bool {
+		href, _ := s.Attr("href")
+		return strings.HasPrefix(href, "magnet:?")
+	}); links.Nodes == nil {
+		errs = append(errs, errors.New("missing magnet"))
+	} else {
+		torrent.Magnet, _ = links.Attr("href")
 	}
 
-	c.found(c.torrent)
+	return
 }
