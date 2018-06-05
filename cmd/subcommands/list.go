@@ -16,19 +16,20 @@ func init() {
 }
 
 var (
-	highlight = color.New(color.FgBlue)
-
 	filmTemplate = template.New("film").Funcs(template.FuncMap{
-		"highlight": highlight.Sprint,
+		"h":       color.New(color.FgBlue).Sprint,
+		"heading": color.New(color.FgBlue, color.Bold).Sprint,
 		"highlightPrefix": func(prefixLength int, input string) string {
-			return highlight.Sprint(input[:prefixLength]) + input[prefixLength:]
+			return color.New(color.FgBlue).Sprint(input[:prefixLength]) + input[prefixLength:]
 		},
 	})
 
 	parsedTemplate = template.Must(filmTemplate.Parse(`
-{{ .Title | highlight }}
-  {{ .Magnet | highlightPrefix 6 }}
-`))
+
+  {{ .Title | heading }}{{if .FilmTitle}}({{.FilmTitle|h}}{{if .FilmLink}} - {{.FilmLink|h}}{{end}}){{end}}, found on {{ .FoundOn | h }}
+   {{ .Magnet | highlightPrefix 6 }}
+   category {{ .Category | h }}, type {{ .Type | h }}, language {{ .Language | h }}, size {{ .TotalSize | h }}, downloads {{ .Downloads | h }}, seeders {{ .Seeds | h }}, leechers {{ .Leeches | h }}{{if .Image}}, image: {{.Image|h}}{{end}}
+   {{if .FilmDescription}}description: {{.FilmDescription|h}}{{end}}`))
 
 	listCmd = &cobra.Command{
 		Use:   "list",
