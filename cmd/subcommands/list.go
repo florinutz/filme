@@ -5,6 +5,8 @@ import (
 
 	"os"
 
+	"strings"
+
 	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -22,11 +24,15 @@ var (
 		"highlightPrefix": func(prefixLength int, input string) string {
 			return color.New(color.FgBlue).Sprint(input[:prefixLength]) + input[prefixLength:]
 		},
+		"highlightSubstr": func(what, input string) string {
+			return strings.Replace(input, what, color.New(color.FgBlue).Sprint(what), -1)
+		},
 	})
 
 	parsedTemplate = template.Must(filmTemplate.Parse(`
 
-  {{ .Title | heading }}{{if .FilmTitle}}({{.FilmTitle|h}}{{if .FilmLink}} - {{.FilmLink|h}}{{end}}){{end}}, found on {{ .FoundOn | h }}
+  {{ .Title | heading }}{{if .FilmTitle}}({{.FilmTitle|h}}{{if .FilmLink}} - {{.FilmLink|h}}{{end}}){{end}} - {{ .FoundOn | h }}
+   {{if .IMDB}}{{ .IMDB.String|highlightSubstr "imdb"}}{{end}}
    {{ .Magnet | highlightPrefix 6 }}
    category {{ .Category | h }}, type {{ .Type | h }}, language {{ .Language | h }}, size {{ .TotalSize | h }}, downloads {{ .Downloads | h }}, seeders {{ .Seeds | h }}, leechers {{ .Leeches | h }}{{if .Image}}, image: {{.Image|h}}{{end}}
    {{if .FilmDescription}}description: {{.FilmDescription|h}}{{end}}`))

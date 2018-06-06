@@ -20,7 +20,7 @@ import (
 
 const BlankImage = "32e6dd6abe806d43e9453adf3d310851.jpg"
 
-var re = regexp.MustCompile(`(?m)https?://(www\.)?imdb.com/title/tt(\d)+`)
+var imdbRe = regexp.MustCompile(`(?m)https?://(www\.)?imdb.com/title/tt(\d)+`)
 
 // L33tTorrent represents the data onItemFound on a torrent details page
 type L33tTorrent struct {
@@ -29,7 +29,7 @@ type L33tTorrent struct {
 	FilmLink        *url.URL
 	FilmCategories  []string
 	FilmDescription string
-	FilmIMDBLinks   []*url.URL
+	IMDB            *url.URL
 	Magnet          string
 	FoundOn         *url.URL
 	Image           *url.URL
@@ -198,9 +198,8 @@ func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {
 		errs = append(errs, errors.New("no film description"))
 	}
 
-	for _, match := range re.FindAllString(string(r.Body), -1) {
-		link, _ := url.Parse(match)
-		torrent.FilmIMDBLinks = append(torrent.FilmIMDBLinks, link)
+	if matches := imdbRe.FindAllString(string(r.Body), -1); matches != nil {
+		torrent.IMDB, _ = url.Parse(matches[0])
 	}
 
 	return

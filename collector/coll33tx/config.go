@@ -18,7 +18,7 @@ func Configure(c *colly.Collector) {
 	options := []func(collector *colly.Collector){
 		colly.MaxDepth(1),
 		colly.Async(true),
-		colly.CacheDir("/tmp/cache"),
+		colly.CacheDir(".cache"),
 	}
 
 	for _, option := range options {
