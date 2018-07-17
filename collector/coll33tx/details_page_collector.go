@@ -49,8 +49,8 @@ type L33tTorrent struct {
 // TorrentFoundCallback is the type the callback func that's be called when a torrent was onItemFound
 type TorrentFoundCallback func(torrent L33tTorrent)
 
-// detailsCollector is a wrapper around the colly collector + page data
-type detailsCollector struct {
+// DetailsCollector is a wrapper around the colly collector + page data
+type DetailsCollector struct {
 	*colly.Collector
 	found   TorrentFoundCallback
 	torrent L33tTorrent // this will be filled in the events
@@ -64,8 +64,8 @@ func init() {
 	mutex = &sync.Mutex{}
 }
 
-func NewDetailsPageCollector(found TorrentFoundCallback, options ...func(*colly.Collector)) *detailsCollector {
-	col := detailsCollector{
+func NewDetailsPageCollector(found TorrentFoundCallback, options ...func(*colly.Collector)) *DetailsCollector {
+	col := DetailsCollector{
 		Collector: getCollyCollector(options...),
 		found:     found,
 		torrent:   L33tTorrent{},
@@ -78,20 +78,20 @@ func NewDetailsPageCollector(found TorrentFoundCallback, options ...func(*colly.
 }
 
 // Magnet gets the magnet link from the details page
-func (c *detailsCollector) Magnet(e *colly.HTMLElement) {
+func (dc *DetailsCollector) Magnet(e *colly.HTMLElement) {
 	if !strings.HasPrefix(e.Attr("href"), "magnet") {
 		return
 	}
-	c.torrent.Magnet = e.Attr("href")
+	dc.torrent.Magnet = e.Attr("href")
 }
 
-func (c *detailsCollector) OnResponse(r *colly.Response) {
-	c.torrent.fromResponse(r)
+func (dc *DetailsCollector) OnResponse(r *colly.Response) {
+	dc.torrent.fromResponse(r)
 }
 
 // OnScraped assembles and collects the Torrent struct at the end
-func (c *detailsCollector) OnScraped(r *colly.Response) {
-	c.found(c.torrent)
+func (dc *DetailsCollector) OnScraped(r *colly.Response) {
+	dc.found(dc.torrent)
 }
 
 func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {

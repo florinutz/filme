@@ -66,7 +66,7 @@ func Configure(c *colly.Collector) {
 		log.WithError(err).WithFields(log.Fields{
 			"url":      r.Request.URL,
 			"response": *r,
-		}).Warn("Crawling error!")
+		}).Warn("crawling error")
 	})
 }
 

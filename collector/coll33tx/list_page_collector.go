@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type ListItem struct {
+type Item struct {
 	Name    string
 	Href    string
 	Size    string
@@ -17,28 +17,42 @@ type ListItem struct {
 	Leeches int
 }
 
-// TorrentFoundCallback is the type for a callback func to be called when the we came across a list item
-type ListItemFoundCallback func(item ListItem)
+type List []*Item
 
-// listCollector is a wrapper around the colly collector + listing page data
-type listCollector struct {
+// TorrentFoundCallbsack is the type for a callback func to be called when we came across a list item
+type ListItemFoundCallback func(item Item)
+
+//CrawlFinishedCallback is the type for the callback func to be called when all the list list were parsed into the list
+type CrawlFinishedCallback func(list List, response *colly.Response)
+
+// ListCollector is a wrapper around the colly collector + listing page data
+type ListCollector struct {
 	*colly.Collector
-	onItemFound ListItemFoundCallback
+	list        List
+	OnItemFound ListItemFoundCallback
+	OnCrawled   CrawlFinishedCallback
 }
 
-func NewListCollector(onItemFound ListItemFoundCallback, options ...func(collector *colly.Collector)) *listCollector {
-	listCollector := listCollector{
+func NewListCollector(
+	onItemFound ListItemFoundCallback,
+	onListCrawled CrawlFinishedCallback,
+	options ...func(collector *colly.Collector),
+) *ListCollector {
+	listCollector := ListCollector{
 		Collector:   getCollyCollector(options...),
-		onItemFound: onItemFound,
+		OnItemFound: onItemFound,
+		OnCrawled:   onListCrawled,
 	}
-
 	listCollector.Collector.OnHTML("td.name a:nth-of-type(2)", listCollector.itemHandler)
+	listCollector.Collector.OnScraped(func(r *colly.Response) {
+		listCollector.OnCrawled(listCollector.list, r)
+	})
 
 	return &listCollector
 }
 
 // onListItemHandler parses the  list and launches a request for each item page
-func (col *listCollector) itemHandler(e *colly.HTMLElement) {
+func (col *ListCollector) itemHandler(e *colly.HTMLElement) {
 	linkHref := e.Request.AbsoluteURL(e.Attr("href"))
 
 	log.WithFields(log.Fields{"title": e.Text, "href": linkHref}).Debug("list item")
@@ -50,18 +64,20 @@ func (col *listCollector) itemHandler(e *colly.HTMLElement) {
 	}
 
 	// trigger the onFound event with the data as input
-	listItem := &ListItem{}
+	listItem := &Item{}
 
 	errs := listItem.fromTitleLink(e)
 	if errs != nil {
 		log.WithField("errs", errs).Errorf("item '%s' is invalid", e.Text)
 	}
 
-	// trigger the event even on incomplete ListItem due to strtoint conversion errors
-	col.onItemFound(*listItem)
+	col.list = append(col.list, listItem)
+
+	// trigger the event even on incomplete Item due to strtoint conversion errors
+	col.OnItemFound(*listItem)
 }
 
-func (i *ListItem) fromTitleLink(e *colly.HTMLElement) (errs []error) {
+func (i *Item) fromTitleLink(e *colly.HTMLElement) (errs []error) {
 	i.Name = e.Text
 	i.Href = e.Request.AbsoluteURL(e.Attr("href"))
 
