@@ -5,9 +5,9 @@ import (
 
 	"fmt"
 
+	"github.com/florinutz/filme/collector/coll33tx"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/phlo/filme/collector/coll33tx"
 )
 
 // NewDetailCollector creates a new 1337x.to details page collector tweaked for business

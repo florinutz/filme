@@ -3,10 +3,10 @@ package subcommands
 import (
 	log "github.com/sirupsen/logrus"
 
+	"github.com/florinutz/filme/cmd/subcommands/coll33tx"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gitlab.com/phlo/filme/cmd/subcommands/coll33tx"
 )
 
 var cfgFile string

@@ -5,9 +5,9 @@ import (
 
 	"text/template"
 
+	"github.com/florinutz/filme/collector/coll33tx"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/phlo/filme/collector/coll33tx"
 
 	"strings"
 

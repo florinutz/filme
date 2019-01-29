@@ -1,9 +1,9 @@
 package coll33tx
 
 import (
+	coll33txBusiness "github.com/florinutz/filme/collector/business/coll33tx"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	coll33txBusiness "gitlab.com/phlo/filme/collector/business/coll33tx"
 )
 
 func init() {

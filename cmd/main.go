@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gitlab.com/phlo/filme/cmd/subcommands"
+	"github.com/florinutz/filme/cmd/subcommands"
 )
 
 func main() {
