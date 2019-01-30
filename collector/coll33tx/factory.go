@@ -20,7 +20,7 @@ func (col *ListCollector) CanHandleResponse(r *colly.Response) bool {
 	return true
 }
 
-func (col *DetailsCollector) CanHandleResponse(r *colly.Response) bool {
+func (dc *DetailsCollector) CanHandleResponse(r *colly.Response) bool {
 	doc, err := getDoc(r)
 	if err != nil {
 		log.WithField("response", r).Warn("error while checking if ListCollector can handle a response")
@@ -29,7 +29,7 @@ func (col *DetailsCollector) CanHandleResponse(r *colly.Response) bool {
 	if title := doc.Find(".box-info-heading h1"); title.Nodes == nil {
 		return false
 	}
-	if img := doc.Find(".torrent-detail .torrent-image img"); img.Nodes == nil {
+	if img := doc.Find(".Torrent-detail .Torrent-image img"); img.Nodes == nil {
 		return false
 	}
 	return true

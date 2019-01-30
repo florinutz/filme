@@ -22,7 +22,7 @@ const BlankImage = "32e6dd6abe806d43e9453adf3d310851.jpg"
 
 var imdbRe = regexp.MustCompile(`(?m)https?://(www\.)?imdb.com/title/tt(\d)+`)
 
-// L33tTorrent represents the data onItemFound on a torrent details page
+// L33tTorrent represents the data onItemFound on a Torrent details page
 type L33tTorrent struct {
 	Title           string
 	FilmTitle       string
@@ -46,14 +46,14 @@ type L33tTorrent struct {
 	Leeches         int
 }
 
-// TorrentFoundCallback is the type the callback func that's be called when a torrent was onItemFound
+// TorrentFoundCallback is the type the callback func that's be called when a Torrent was onItemFound
 type TorrentFoundCallback func(torrent L33tTorrent)
 
 // DetailsCollector is a wrapper around the colly collector + page data
 type DetailsCollector struct {
 	*colly.Collector
 	found   TorrentFoundCallback
-	torrent L33tTorrent // this will be filled in the events
+	Torrent L33tTorrent // this will be filled in the events
 }
 
 var (
@@ -68,7 +68,7 @@ func NewDetailsPageCollector(found TorrentFoundCallback, options ...func(*colly.
 	col := DetailsCollector{
 		Collector: getCollyCollector(options...),
 		found:     found,
-		torrent:   L33tTorrent{},
+		Torrent:   L33tTorrent{},
 	}
 
 	col.Collector.OnResponse(col.OnResponse)
@@ -82,16 +82,16 @@ func (dc *DetailsCollector) Magnet(e *colly.HTMLElement) {
 	if !strings.HasPrefix(e.Attr("href"), "magnet") {
 		return
 	}
-	dc.torrent.Magnet = e.Attr("href")
+	dc.Torrent.Magnet = e.Attr("href")
 }
 
 func (dc *DetailsCollector) OnResponse(r *colly.Response) {
-	dc.torrent.fromResponse(r)
+	dc.Torrent.fromResponse(r)
 }
 
 // OnScraped assembles and collects the Torrent struct at the end
 func (dc *DetailsCollector) OnScraped(r *colly.Response) {
-	dc.found(dc.torrent)
+	dc.found(dc.Torrent)
 }
 
 func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {
@@ -154,7 +154,7 @@ func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {
 			}
 		})
 
-	if img := doc.Find(".torrent-detail .torrent-image img"); img.Nodes == nil {
+	if img := doc.Find(".Torrent-detail .Torrent-image img"); img.Nodes == nil {
 		errs = append(errs, errors.New("no image element"))
 	} else {
 		if src, exists := img.Attr("src"); !exists {
@@ -174,7 +174,7 @@ func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {
 		}
 	}
 
-	if filmTitle := doc.Find(".torrent-detail-info h3 a"); filmTitle.Nodes != nil {
+	if filmTitle := doc.Find(".Torrent-detail-info h3 a"); filmTitle.Nodes != nil {
 		torrent.FilmTitle = filmTitle.Text()
 		link, _ := filmTitle.Attr("href")
 		if torrent.FilmLink, err = url.Parse(r.Request.AbsoluteURL(link)); err != nil {
@@ -184,7 +184,7 @@ func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {
 		errs = append(errs, errors.New("no normalized title element"))
 	}
 
-	if filmCategories := doc.Find(".torrent-category span"); filmCategories.Nodes != nil {
+	if filmCategories := doc.Find(".Torrent-category span"); filmCategories.Nodes != nil {
 		filmCategories.Each(func(_ int, s *goquery.Selection) {
 			torrent.FilmCategories = append(torrent.FilmCategories, s.Text())
 		})
@@ -192,7 +192,7 @@ func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {
 		errs = append(errs, errors.New("no film categories"))
 	}
 
-	if filmDescription := doc.Find(".torrent-detail-info p"); filmDescription != nil {
+	if filmDescription := doc.Find(".Torrent-detail-info p"); filmDescription != nil {
 		torrent.FilmDescription = filmDescription.Text()
 	} else {
 		errs = append(errs, errors.New("no film description"))

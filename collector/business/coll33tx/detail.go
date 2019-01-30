@@ -1,10 +1,6 @@
 package coll33tx
 
 import (
-	"encoding/json"
-
-	"fmt"
-
 	"github.com/florinutz/filme/collector/coll33tx"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
@@ -21,14 +17,6 @@ func NewDetailCollector(
 
 func torrentFound(log *logrus.Entry) func(torrent coll33tx.L33tTorrent) {
 	return func(torrent coll33tx.L33tTorrent) {
-		log := log.WithField("torrent", torrent)
-		log.Debug("torrent found on detail page")
-
-		j, err := json.Marshal(torrent)
-		if err != nil {
-			log.Error("could not encode torrent to json")
-		}
-
-		fmt.Println(string(j))
+		log.WithField("torrent", torrent).Debug("torrent found on detail page")
 	}
 }
