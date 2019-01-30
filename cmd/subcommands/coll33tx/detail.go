@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/florinutz/filme/collector/coll33tx"
+
 	coll33txBusiness "github.com/florinutz/filme/collector/business/coll33tx"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -16,7 +18,13 @@ func init() {
 }
 
 type dCmdConfigType struct {
-	url string
+	url        string
+	justMagnet bool
+}
+
+func init() {
+	DetailCmd.Flags().BoolVarP(&detailsCmdConfig.justMagnet, "magnet", "m", false,
+		"only show magnet")
 }
 
 var (
@@ -35,6 +43,7 @@ var (
 		},
 
 		Run: func(cmd *cobra.Command, args []string) {
+			log.SetReportCaller(true)
 			log := log.WithField("url", detailsCmdConfig.url)
 
 			detail := coll33txBusiness.NewDetailCollector(log)
@@ -46,12 +55,26 @@ var (
 
 			detail.Wait()
 
-			j, err := json.Marshal(detail.Torrent)
-			if err != nil {
-				log.Error("could not encode torrent to json")
+			if err := displayTorrent(detail.Torrent); err != nil {
+				log.WithError(err).Fatal("could not display torrent")
 			}
-
-			fmt.Println(string(j))
 		},
 	}
 )
+
+func displayTorrent(torrent coll33tx.L33tTorrent) error {
+
+	return errors.New("cca")
+	if detailsCmdConfig.justMagnet {
+		fmt.Println(torrent.Magnet)
+		return nil
+	}
+
+	j, err := json.Marshal(torrent)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(j))
+
+	return nil
+}
