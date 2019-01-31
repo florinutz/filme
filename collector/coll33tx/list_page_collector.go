@@ -28,7 +28,7 @@ type CrawlFinishedCallback func(list List, response *colly.Response)
 // ListCollector is a wrapper around the colly collector + listing page data
 type ListCollector struct {
 	*colly.Collector
-	list        List
+	List        List
 	OnItemFound ListItemFoundCallback
 	OnCrawled   CrawlFinishedCallback
 }
@@ -45,7 +45,7 @@ func NewListCollector(
 	}
 	listCollector.Collector.OnHTML("td.name a:nth-of-type(2)", listCollector.itemHandler)
 	listCollector.Collector.OnScraped(func(r *colly.Response) {
-		listCollector.OnCrawled(listCollector.list, r)
+		listCollector.OnCrawled(listCollector.List, r)
 	})
 
 	return &listCollector
@@ -71,7 +71,7 @@ func (col *ListCollector) itemHandler(e *colly.HTMLElement) {
 		log.WithField("errs", errs).Errorf("item '%s' is invalid", e.Text)
 	}
 
-	col.list = append(col.list, listItem)
+	col.List = append(col.List, listItem)
 
 	// trigger the event even on incomplete Item due to strtoint conversion errors
 	col.OnItemFound(*listItem)

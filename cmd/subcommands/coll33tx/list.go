@@ -50,6 +50,10 @@ var (
 				log.WithError(err).Warn("visit error")
 			}
 			list.Wait()
+
+			for _, item := range list.List {
+				fmt.Printf("%s: %s\n", item.Name, item.Href)
+			}
 		},
 	}
 )
