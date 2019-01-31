@@ -63,8 +63,6 @@ var (
 )
 
 func displayTorrent(torrent coll33tx.L33tTorrent) error {
-
-	return errors.New("cca")
 	if detailsCmdConfig.justMagnet {
 		fmt.Println(torrent.Magnet)
 		return nil
