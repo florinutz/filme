@@ -52,9 +52,8 @@ var (
 
 			detail := coll33tx.NewDetailsPageCollector(torrentFound)
 
-			err := detail.Visit(detailsCmdConfig.url)
-			if err != nil {
-				log.WithError(err).Warn("visit error")
+			if err := detail.Visit(detailsCmdConfig.url); err != nil {
+				log.WithError(err).Fatal("visit error")
 			}
 
 			detail.Wait()

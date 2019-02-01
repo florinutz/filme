@@ -100,7 +100,7 @@ func OnListItemFound(item coll33tx.Item) {
 	})
 
 	if err := details.Visit(item.Href); err != nil {
-		logWithItem.WithError(err).Warn("visit error")
+		logWithItem.WithError(err).Fatal("visit error")
 	}
 
 	details.Wait()
