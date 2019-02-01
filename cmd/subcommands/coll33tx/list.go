@@ -84,8 +84,8 @@ var (
 )
 
 // OnListItemFound is the callback executed when a new list item was found
-func OnListItemFound(item coll33tx.Item) {
-	logWithItem := log.WithField("item", item)
+func OnListItemFound(item coll33tx.Item, r *colly.Response) {
+	logWithItem := log.WithField("item", item).WithField("url", r.Request.URL.String())
 
 	if !listCmdConfig.withDetails {
 		logWithItem.WithField("skip", true).Debug("list item found")
@@ -100,7 +100,7 @@ func OnListItemFound(item coll33tx.Item) {
 	})
 
 	if err := details.Visit(item.Href); err != nil {
-		logWithItem.WithError(err).Fatal("visit error")
+		logWithItem.WithError(err).Warn("visit error on list item page")
 	}
 
 	details.Wait()
