@@ -1,29 +1,27 @@
 package coll33tx
 
 import (
-	"time"
-
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/gocolly/colly"
 	collyExtensions "github.com/gocolly/colly/extensions"
 	log "github.com/sirupsen/logrus"
 )
 
-const Domain = "1337x.to"
+func getCollyCollector(options ...func(collector *colly.Collector)) *colly.Collector {
+	c := colly.NewCollector(options...)
 
-// Configure adds common configs for all filme Collectors
-func Configure(c *colly.Collector) {
-	options := []func(collector *colly.Collector){
-		colly.MaxDepth(1),
-		colly.Async(true),
-		colly.CacheDir(".cache"),
-	}
+	c.AllowedDomains = []string{"1337x.to"}
+	c.UserAgent = "filme finder"
 
-	for _, option := range options {
-		option(c)
-	}
+	collyExtensions.RandomUserAgent(c)
+	collyExtensions.Referrer(c)
+
+	colly.MaxDepth(1)(c)
+	colly.Async(true)(c)
+	colly.CacheDir(".cache")(c)
 
 	c.WithTransport(&http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -37,13 +35,6 @@ func Configure(c *colly.Collector) {
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	})
-
-	// Rotate socks5 proxies
-	//rp, err := proxy.RoundRobinProxySwitcher("sockss5://wOBzsRUmerF:A7691RHzprQ@ams.socks.ipvanish.com")
-	//if err != nil {
-	//	log.WithError(err).Fatal("Couldn't use the socks5 proxy")
-	//}
-	//c.SetProxyFunc(rp)
 
 	if err := c.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
@@ -70,18 +61,6 @@ func Configure(c *colly.Collector) {
 			"response": *r,
 		}).Warn("crawling error")
 	})
-}
-
-func getCollyCollector(options ...func(collector *colly.Collector)) *colly.Collector {
-	c := colly.NewCollector(options...)
-
-	c.AllowedDomains = []string{Domain}
-	c.UserAgent = "filme finder"
-
-	collyExtensions.RandomUserAgent(c)
-	collyExtensions.Referrer(c)
-
-	Configure(c)
 
 	return c
 }
