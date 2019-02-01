@@ -7,12 +7,8 @@ import (
 )
 
 // NewDetailCollector creates a new 1337x.to details page collector tweaked for business
-func NewDetailCollector(
-	log *logrus.Entry,
-	options ...func(collector *colly.Collector),
-) *coll33tx.DetailsCollector {
-	collector := coll33tx.NewDetailsPageCollector(torrentFound(log), options...)
-	return collector
+func NewDetailCollector(log *logrus.Entry, options ...func(collector *colly.Collector)) *coll33tx.DetailsCollector {
+	return coll33tx.NewDetailsPageCollector(torrentFound(log), options...)
 }
 
 func torrentFound(log *logrus.Entry) func(torrent coll33tx.L33tTorrent) {

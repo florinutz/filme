@@ -38,18 +38,20 @@ func Configure(c *colly.Collector) {
 		ExpectContinueTimeout: 1 * time.Second,
 	})
 
-	//Rotate socks5 proxies
+	// Rotate socks5 proxies
 	//rp, err := proxy.RoundRobinProxySwitcher("sockss5://wOBzsRUmerF:A7691RHzprQ@ams.socks.ipvanish.com")
 	//if err != nil {
 	//	log.WithError(err).Fatal("Couldn't use the socks5 proxy")
 	//}
 	//c.SetProxyFunc(rp)
 
-	c.Limit(&colly.LimitRule{
+	if err := c.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: 2,
 		RandomDelay: 5 * time.Second,
-	})
+	}); err != nil {
+		log.WithError(err).Fatal("failed while setting collector limit")
+	}
 
 	c.OnRequest(func(r *colly.Request) {
 		log.WithFields(log.Fields{"url": r.URL}).Debug("Requesting a url")

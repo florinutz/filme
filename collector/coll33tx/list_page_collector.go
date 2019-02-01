@@ -22,7 +22,7 @@ type List []*Item
 // TorrentFoundCallbsack is the type for a callback func to be called when we came across a list item
 type ListItemFoundCallback func(item Item)
 
-//CrawlFinishedCallback is the type for the callback func to be called when all the list list were parsed into the list
+// CrawlFinishedCallback is the type for the callback func to be called when all the list list were parsed into the list
 type CrawlFinishedCallback func(list List, response *colly.Response)
 
 // ListCollector is a wrapper around the colly collector + listing page data

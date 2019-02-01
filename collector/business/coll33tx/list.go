@@ -49,24 +49,22 @@ func NewListCollector(
 }
 
 // OnListItemFound is the callback executed when a new list item was found
-func OnListItemFound(crawlDetails bool, log *logrus.Entry) func(coll33tx.Item) {
+func OnListItemFound(withDetails bool, log *logrus.Entry) func(coll33tx.Item) {
 	return func(item coll33tx.Item) {
-		const listItemFoundStr = "list item found"
-
-		itemLog := log.WithField("item", item)
-		if !crawlDetails {
-			itemLog.WithField("skip", true).Debug(listItemFoundStr)
+		log = log.WithField("item", item)
+		if !withDetails {
+			log.WithField("skip", true).Debug("list item found")
 			return
 		}
-		itemLog.Debug(listItemFoundStr)
 
 		// go deeper
 		details := coll33tx.NewDetailsPageCollector(func(torrent coll33tx.L33tTorrent) {
-			parsedTemplate.Execute(os.Stdout, torrent)
+			if err := parsedTemplate.Execute(os.Stdout, torrent); err != nil {
+				log.WithError(err).Fatal("error while executing template")
+			}
 		})
 
-		err := details.Visit(item.Href)
-		if err != nil {
+		if err := details.Visit(item.Href); err != nil {
 			log.WithError(err).Warn("visit error")
 		}
 
