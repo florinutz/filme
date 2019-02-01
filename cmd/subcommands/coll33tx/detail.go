@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/florinutz/filme/collector/coll33tx"
 
-	coll33txBusiness "github.com/florinutz/filme/collector/business/coll33tx"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -20,11 +20,14 @@ func init() {
 type dCmdConfigType struct {
 	url        string
 	justMagnet bool
+	json       bool
 }
 
 func init() {
 	DetailCmd.Flags().BoolVarP(&detailsCmdConfig.justMagnet, "magnet", "m", false,
 		"only show magnet")
+	DetailCmd.Flags().BoolVarP(&detailsCmdConfig.json, "json", "j", false,
+		"encode torrent output to json")
 }
 
 var (
@@ -39,6 +42,7 @@ var (
 				return errors.New("requires the url to be parsed as an argument")
 			}
 			detailsCmdConfig.url = args[0]
+
 			return nil
 		},
 
@@ -46,7 +50,7 @@ var (
 			log.SetReportCaller(true)
 			log := log.WithField("url", detailsCmdConfig.url)
 
-			detail := coll33txBusiness.NewDetailCollector(log)
+			detail := coll33tx.NewDetailsPageCollector(torrentFound)
 
 			err := detail.Visit(detailsCmdConfig.url)
 			if err != nil {
@@ -54,25 +58,36 @@ var (
 			}
 
 			detail.Wait()
-
-			if err := displayTorrent(detail.Torrent); err != nil {
-				log.WithError(err).Fatal("could not display torrent")
-			}
 		},
 	}
 )
 
-func displayTorrent(torrent coll33tx.L33tTorrent) error {
+func torrentFound(torrent coll33tx.L33tTorrent) {
+	log.WithField("torrent", torrent).Debug("torrent found on detail page")
+
 	if detailsCmdConfig.justMagnet {
 		fmt.Println(torrent.Magnet)
-		return nil
+		return
 	}
 
-	j, err := json.Marshal(torrent)
-	if err != nil {
-		return err
+	if detailsCmdConfig.json {
+		j, err := json.Marshal(torrent)
+		if err != nil {
+			log.WithError(err).Fatal("error encoding to json")
+		}
+		fmt.Println(string(j))
+		return
 	}
-	fmt.Println(string(j))
 
-	return nil
+	fmt.Printf(`%s
+
+magnet: %s
+
+seeders: %d
+leechers: %d`,
+		strings.Trim(torrent.Title, " "),
+		torrent.Magnet,
+		torrent.Seeds,
+		torrent.Leeches,
+	)
 }
