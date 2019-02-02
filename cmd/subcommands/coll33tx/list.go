@@ -74,7 +74,15 @@ var (
 		},
 	})
 
-	parsedTemplate = template.Must(filmTemplate.Parse(`
+	tplTorrentFull = template.Must(filmTemplate.Parse(`
+
+  {{ .Title | heading }}{{if .FilmTitle}}({{.FilmTitle|h}}{{if .FilmLink}} - {{.FilmLink|h}}{{end}}){{end}} - {{ .FoundOn | h }}
+   {{if .IMDB}}{{ .IMDB.String|highlightSubstr "imdb"}}{{end}}
+   {{ .Magnet | highlightPrefix 6 }}
+   category {{ .Category | h }}, type {{ .Type | h }}, language {{ .Language | h }}, size {{ .TotalSize | h }}, downloads {{ .Downloads | h }}, seeders {{ .Seeds | h }}, leechers {{ .Leeches | h }}{{if .Image}}, image: {{.Image|h}}{{end}}
+   {{if .FilmDescription}}description: {{.FilmDescription|h}}{{end}}`))
+
+	tplTorrentPartial = template.Must(filmTemplate.Parse(`
 
   {{ .Title | heading }}{{if .FilmTitle}}({{.FilmTitle|h}}{{if .FilmLink}} - {{.FilmLink|h}}{{end}}){{end}} - {{ .FoundOn | h }}
    {{if .IMDB}}{{ .IMDB.String|highlightSubstr "imdb"}}{{end}}
@@ -93,8 +101,8 @@ func OnListItemFound(item coll33tx.Item, r *colly.Response) {
 	}
 
 	// go deeper
-	details := coll33tx.NewDetailsPageCollector(func(torrent coll33tx.L33tTorrent) {
-		if err := parsedTemplate.Execute(os.Stdout, torrent); err != nil {
+	details := coll33tx.NewDetailsPageCollector(func(torrent coll33tx.Torrent) {
+		if err := tplTorrentFull.Execute(os.Stdout, torrent); err != nil {
 			logWithItem.WithError(err).Fatal("error while executing template")
 		}
 	})

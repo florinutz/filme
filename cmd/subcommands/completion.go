@@ -3,9 +3,9 @@ package subcommands
 import (
 	"os"
 
-	"io"
+	log "github.com/sirupsen/logrus"
 
-	"strings"
+	"io"
 
 	"github.com/spf13/cobra"
 )
@@ -16,8 +16,6 @@ const (
 )
 
 var (
-	shell string
-
 	completionFuncs = map[string]func(io.Writer) error{
 		Bash: RootCmd.GenBashCompletion,
 		Zsh:  RootCmd.GenZshCompletion,
@@ -47,17 +45,17 @@ or restart the terminal.
 		ValidArgs: []string{Bash, Zsh},
 		Args:      cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			shell = args[0]
-			completionFuncs[shell](os.Stdout)
+			if f, ok := completionFuncs[args[0]]; ok {
+				if err := f(os.Stdout); err != nil {
+					log.WithError(err).Fatal("error while generating shell completion")
+				}
+			} else {
+				log.Fatal("invalid shell for completion")
+			}
 		},
 	}
 )
 
 func init() {
 	RootCmd.AddCommand(completionCmd)
-}
-
-// shellIsValid makes sure the shell is among zsh or bash, case insensitive
-func shellIsValid(shell string) bool {
-	return strings.EqualFold(shell, Bash) || strings.EqualFold(shell, Zsh)
 }

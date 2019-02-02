@@ -22,8 +22,8 @@ const BlankImage = "32e6dd6abe806d43e9453adf3d310851.jpg"
 
 var imdbRe = regexp.MustCompile(`(?m)https?://(www\.)?imdb.com/title/tt(\d)+`)
 
-// L33tTorrent represents the data onItemFound on a Torrent details page
-type L33tTorrent struct {
+// Torrent represents the data onItemFound on a Torrent details page
+type Torrent struct {
 	Title           string
 	FilmTitle       string
 	FilmLink        *url.URL
@@ -47,13 +47,13 @@ type L33tTorrent struct {
 }
 
 // TorrentFoundCallback is the type the callback func that's be called when a Torrent was onItemFound
-type TorrentFoundCallback func(torrent L33tTorrent)
+type TorrentFoundCallback func(torrent Torrent)
 
 // DetailsCollector is a wrapper around the colly collector + page data
 type DetailsCollector struct {
 	*colly.Collector
 	found   TorrentFoundCallback
-	Torrent L33tTorrent // this will be filled in the events
+	Torrent Torrent // this will be filled in the events
 }
 
 var (
@@ -68,7 +68,7 @@ func NewDetailsPageCollector(found TorrentFoundCallback, options ...func(*colly.
 	col := DetailsCollector{
 		Collector: getCollyCollector(options...),
 		found:     found,
-		Torrent:   L33tTorrent{},
+		Torrent:   Torrent{},
 	}
 
 	col.Collector.OnResponse(col.OnResponse)
@@ -94,7 +94,7 @@ func (dc *DetailsCollector) OnScraped(r *colly.Response) {
 	dc.found(dc.Torrent)
 }
 
-func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {
+func (torrent *Torrent) fromResponse(r *colly.Response) (errs []error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -203,4 +203,19 @@ func (torrent *L33tTorrent) fromResponse(r *colly.Response) (errs []error) {
 	}
 
 	return
+}
+
+func (dc *DetailsCollector) CanHandleResponse(r *colly.Response) bool {
+	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
+	if err != nil {
+		log.WithField("response", r).Warn("error while checking if ListCollector can handle a response")
+		return false
+	}
+	if title := doc.Find(".box-info-heading h1"); title.Nodes == nil {
+		return false
+	}
+	if img := doc.Find(".Torrent-detail .Torrent-image img"); img.Nodes == nil {
+		return false
+	}
+	return true
 }

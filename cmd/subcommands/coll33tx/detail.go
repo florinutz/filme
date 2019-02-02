@@ -61,7 +61,7 @@ var (
 	}
 )
 
-func torrentFound(torrent coll33tx.L33tTorrent) {
+func torrentFound(torrent coll33tx.Torrent) {
 	log.WithField("torrent", torrent).Debug("torrent found on detail page")
 
 	if detailsCmdConfig.justMagnet {

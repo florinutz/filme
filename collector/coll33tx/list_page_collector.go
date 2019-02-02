@@ -1,7 +1,10 @@
 package coll33tx
 
 import (
+	"bytes"
 	"net/url"
+
+	"github.com/PuerkitoBio/goquery"
 
 	"strconv"
 
@@ -98,4 +101,18 @@ func (i *Item) fromTitleLink(e *colly.HTMLElement) (errs []error) {
 	i.Size = tr.Find(".size").Text()
 
 	return
+}
+
+func (col *ListCollector) CanHandleResponse(r *colly.Response) bool {
+	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
+	if err != nil {
+		log.WithField("response", r).Warn("error while checking if ListCollector can handle a response")
+		return false
+	}
+
+	if listElement := doc.Find(".page-content .featured-list"); listElement.Nodes == nil {
+		return false
+	}
+
+	return true
 }
