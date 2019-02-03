@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/florinutz/filme/util/value"
+
 	"github.com/gocolly/colly"
 
 	"github.com/florinutz/filme/collector/coll33tx"
@@ -19,13 +21,22 @@ import (
 )
 
 func init() {
-	ListCmd.Flags().BoolVarP(&listCmdConfig.withDetails, "crawl-details", "d", false, "follows every link in the list and fetches more data")
-	L33txRootCmd.AddCommand(ListCmd)
+	ListCmd.Flags().BoolVarP(&listCmdConfig.withDetails, "crawl-details", "d", false,
+		"follows every link in the list and fetches more data")
+
+	defaultDebugLevel := log.DebugLevel
+	_ = listCmdConfig.debugLevel.Set(defaultDebugLevel.String())
+	ListCmd.Flags().Var(&listCmdConfig.debugLevel, "debug-level", fmt.Sprintf("possible debug levels: %s",
+		strings.Join(value.GetAllLevels(), ", ")))
+
 	log.SetFormatter(&log.JSONFormatter{})
+
+	L33txRootCmd.AddCommand(ListCmd)
 }
 
 type lCmdConfigType struct {
 	withDetails bool
+	debugLevel  value.DebugLevelValue
 	url         string
 }
 
@@ -84,7 +95,7 @@ var (
 )
 
 // OnListItemFound is the callback executed when a new list item was found
-func OnListItemFound(item coll33tx.Item, r *colly.Response) {
+func OnListItemFound(item coll33tx.Item, col *coll33tx.ListCollector, r *colly.Response) {
 	logWithItem := log.WithField("item", item).WithField("url", r.Request.URL.String())
 
 	if !listCmdConfig.withDetails {

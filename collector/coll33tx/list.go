@@ -24,7 +24,7 @@ type Item struct {
 type List []*Item
 
 // TorrentFoundCallbsack is the type for a callback func to be called when we came across a list item
-type ListItemFoundCallback func(item Item, response *colly.Response)
+type ListItemFoundCallback func(item Item, listCollector *ListCollector, response *colly.Response)
 
 // CrawlFinishedCallback is the type for the callback func to be called when all the list list were parsed into the list
 type CrawlFinishedCallback func(list List, response *colly.Response)
@@ -85,7 +85,7 @@ func (col *ListCollector) itemHandler(e *colly.HTMLElement) {
 	col.List = append(col.List, listItem)
 
 	// trigger the event even on incomplete Item due to strtoint conversion errors
-	col.OnItemFound(*listItem, e.Response)
+	col.OnItemFound(*listItem, col, e.Response)
 }
 
 func (i *Item) fromTitleLink(e *colly.HTMLElement) (errs []error) {
