@@ -2,6 +2,7 @@ package coll33tx
 
 import (
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 
@@ -65,8 +66,15 @@ func init() {
 }
 
 func NewDetailsPageCollector(found TorrentFoundCallback, options ...func(*colly.Collector)) *DetailsCollector {
+	logger := &log.Logger{
+		Out:          os.Stderr,
+		Formatter:    &log.TextFormatter{},
+		Level:        log.DebugLevel,
+		ReportCaller: false,
+	}
+
 	col := DetailsCollector{
-		Collector: initCollector(options...),
+		Collector: initCollector(logger, options...),
 		found:     found,
 		Torrent:   Torrent{},
 	}

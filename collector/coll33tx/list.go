@@ -3,6 +3,7 @@ package coll33tx
 import (
 	"bytes"
 	"net/url"
+	"os"
 
 	"github.com/PuerkitoBio/goquery"
 
@@ -41,8 +42,15 @@ func NewListCollector(
 	onListCrawled CrawlFinishedCallback,
 	options ...func(collector *colly.Collector),
 ) *ListCollector {
+	logger := &log.Logger{
+		Out:          os.Stderr,
+		Formatter:    &log.TextFormatter{},
+		Level:        log.DebugLevel,
+		ReportCaller: false,
+	}
+
 	listCollector := ListCollector{
-		Collector:   initCollector(options...),
+		Collector:   initCollector(logger, options...),
 		OnItemFound: onItemFound,
 		OnCrawled:   onListCrawled,
 	}
