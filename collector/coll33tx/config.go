@@ -10,18 +10,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func getCollyCollector(options ...func(collector *colly.Collector)) *colly.Collector {
-	c := colly.NewCollector(options...)
+func initCollector(options ...func(collector *colly.Collector)) *colly.Collector {
+	c := colly.NewCollector(append(options,
+		colly.MaxDepth(1),
+		colly.Async(true),
+		colly.CacheDir(".cache"),
+	)...)
 
 	c.AllowedDomains = []string{"1337x.to"}
 	c.UserAgent = "filme finder"
 
 	collyExtensions.RandomUserAgent(c)
 	collyExtensions.Referrer(c)
-
-	colly.MaxDepth(1)(c)
-	colly.Async(true)(c)
-	colly.CacheDir(".cache")(c)
 
 	c.WithTransport(&http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -37,9 +37,10 @@ func getCollyCollector(options ...func(collector *colly.Collector)) *colly.Colle
 	})
 
 	if err := c.Limit(&colly.LimitRule{
-		DomainGlob:  "*",
-		Parallelism: 2,
-		RandomDelay: 5 * time.Second,
+		Delay:       3 * time.Second,
+		RandomDelay: 3 * time.Second,
+		DomainGlob:  "1337x.to",
+		Parallelism: 4,
 	}); err != nil {
 		log.WithError(err).Fatal("failed while setting collector limit")
 	}

@@ -66,7 +66,7 @@ func init() {
 
 func NewDetailsPageCollector(found TorrentFoundCallback, options ...func(*colly.Collector)) *DetailsCollector {
 	col := DetailsCollector{
-		Collector: getCollyCollector(options...),
+		Collector: initCollector(options...),
 		found:     found,
 		Torrent:   Torrent{},
 	}

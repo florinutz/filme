@@ -42,7 +42,7 @@ func NewListCollector(
 	options ...func(collector *colly.Collector),
 ) *ListCollector {
 	listCollector := ListCollector{
-		Collector:   getCollyCollector(options...),
+		Collector:   initCollector(options...),
 		OnItemFound: onItemFound,
 		OnCrawled:   onListCrawled,
 	}

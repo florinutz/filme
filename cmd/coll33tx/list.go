@@ -81,14 +81,6 @@ var (
    {{ .Magnet | highlightPrefix 6 }}
    category {{ .Category | h }}, type {{ .Type | h }}, language {{ .Language | h }}, size {{ .TotalSize | h }}, downloads {{ .Downloads | h }}, seeders {{ .Seeds | h }}, leechers {{ .Leeches | h }}{{if .Image}}, image: {{.Image|h}}{{end}}
    {{if .FilmDescription}}description: {{.FilmDescription|h}}{{end}}`))
-
-	tplTorrentPartial = template.Must(filmTemplate.Parse(`
-
-  {{ .Title | heading }}{{if .FilmTitle}}({{.FilmTitle|h}}{{if .FilmLink}} - {{.FilmLink|h}}{{end}}){{end}} - {{ .FoundOn | h }}
-   {{if .IMDB}}{{ .IMDB.String|highlightSubstr "imdb"}}{{end}}
-   {{ .Magnet | highlightPrefix 6 }}
-   category {{ .Category | h }}, type {{ .Type | h }}, language {{ .Language | h }}, size {{ .TotalSize | h }}, downloads {{ .Downloads | h }}, seeders {{ .Seeds | h }}, leechers {{ .Leeches | h }}{{if .Image}}, image: {{.Image|h}}{{end}}
-   {{if .FilmDescription}}description: {{.FilmDescription|h}}{{end}}`))
 )
 
 // OnListItemFound is the callback executed when a new list item was found

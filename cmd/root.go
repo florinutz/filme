@@ -1,9 +1,9 @@
-package subcommands
+package cmd
 
 import (
 	log "github.com/sirupsen/logrus"
 
-	"github.com/florinutz/filme/cmd/subcommands/coll33tx"
+	"github.com/florinutz/filme/cmd/coll33tx"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -11,11 +11,9 @@ import (
 
 var cfgFile string
 
-var CmdRoot = "filme"
-
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   CmdRoot,
+	Use:   "filme",
 	Short: "Parses torrent sites",
 	Long:  ``,
 }
