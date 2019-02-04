@@ -12,14 +12,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func initCollector(log *log.Logger, options ...func(collector *colly.Collector)) *colly.Collector {
+func initCollector(logEntry *log.Entry, options ...func(collector *colly.Collector)) *colly.Collector {
 	c := colly.NewCollector(append(options,
 		colly.MaxDepth(1),
 		colly.Async(true),
 		colly.CacheDir(".cache"),
 		colly.UserAgent("filme finder"),
 		colly.AllowedDomains("1337x.to"),
-		colly.Debugger(&debug.LogrusDebugger{Logger: log}),
+		colly.Debugger(&debug.LogrusDebugger{Logger: logEntry.Logger}),
 	)...)
 
 	collyExtensions.RandomUserAgent(c)
@@ -44,7 +44,7 @@ func initCollector(log *log.Logger, options ...func(collector *colly.Collector))
 		DomainGlob:  "1337x.to",
 		Parallelism: 4,
 	}); err != nil {
-		log.WithError(err).Fatal("failed while setting collector limit")
+		logEntry.WithError(err).Fatal("failed while setting collector limit")
 	}
 
 	return c

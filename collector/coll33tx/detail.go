@@ -2,13 +2,10 @@ package coll33tx
 
 import (
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 
 	"bytes"
-
-	"errors"
 
 	"strconv"
 
@@ -55,6 +52,7 @@ type DetailsCollector struct {
 	*colly.Collector
 	found   TorrentFoundCallback
 	Torrent Torrent // this will be filled in the events
+	Log     *log.Entry
 }
 
 var (
@@ -65,18 +63,12 @@ func init() {
 	mutex = &sync.Mutex{}
 }
 
-func NewDetailsPageCollector(found TorrentFoundCallback, options ...func(*colly.Collector)) *DetailsCollector {
-	logger := &log.Logger{
-		Out:          os.Stderr,
-		Formatter:    &log.TextFormatter{},
-		Level:        log.DebugLevel,
-		ReportCaller: false,
-	}
-
+func NewDetailsPageCollector(found TorrentFoundCallback, log *log.Entry, options ...func(*colly.Collector)) *DetailsCollector {
 	col := DetailsCollector{
-		Collector: initCollector(logger, options...),
+		Collector: initCollector(log, options...),
 		found:     found,
 		Torrent:   Torrent{},
+		Log:       log,
 	}
 
 	col.Collector.OnResponse(col.OnResponse)
@@ -94,7 +86,7 @@ func (dc *DetailsCollector) Magnet(e *colly.HTMLElement) {
 }
 
 func (dc *DetailsCollector) OnResponse(r *colly.Response) {
-	dc.Torrent.fromResponse(r)
+	dc.Torrent.fromResponse(r, dc.Log)
 }
 
 // OnScraped assembles and collects the Torrent struct at the end
@@ -102,30 +94,30 @@ func (dc *DetailsCollector) OnScraped(r *colly.Response) {
 	dc.found(dc.Torrent)
 }
 
-func (torrent *Torrent) fromResponse(r *colly.Response) (errs []error) {
+func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	torrent.FoundOn = r.Request.URL
 
-	pageLog := log.WithField("url", torrent.FoundOn.String())
+	//logger := log.WithField("url", torrent.FoundOn.String())
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
 	if err != nil {
-		return []error{err}
+		responseLog.WithError(err).Fatal("couldn't init doc")
 	}
 
 	if title := doc.Find(".box-info-heading h1"); title.Nodes == nil {
-		errs = append(errs, errors.New("missing title element"))
+		responseLog.Debug("missing title element")
 	} else {
-		torrent.Title = title.Text()
+		torrent.Title = strings.TrimSpace(title.Text())
 	}
 
 	if links := doc.Find("a[href]").FilterFunction(func(_ int, s *goquery.Selection) bool {
 		href, _ := s.Attr("href")
 		return strings.HasPrefix(href, "magnet:?")
 	}); links.Nodes == nil {
-		errs = append(errs, errors.New("missing magnet link element"))
+		responseLog.Debug("missing magnet link element")
 	} else {
 		torrent.Magnet, _ = links.Attr("href")
 	}
@@ -163,16 +155,16 @@ func (torrent *Torrent) fromResponse(r *colly.Response) (errs []error) {
 		})
 
 	if img := doc.Find(".Torrent-detail .Torrent-image img"); img.Nodes == nil {
-		errs = append(errs, errors.New("no image element"))
+		responseLog.Debug("missing image element")
 	} else {
 		if src, exists := img.Attr("src"); !exists {
-			errs = append(errs, errors.New("image element has no src"))
+			responseLog.Debug("image element has no src")
 		} else {
 			if strings.HasSuffix(src, BlankImage) {
-				pageLog.Debug("default image")
+				responseLog.Debug("default image")
 			} else {
 				if torrent.Image, err = url.Parse(src); err != nil {
-					errs = append(errs, errors.New("invalid image url"))
+					responseLog.Debug("invalid image url")
 				} else {
 					if strings.HasPrefix(torrent.Image.String(), "//") {
 						torrent.Image, _ = url.Parse("http://" + torrent.Image.String()[2:])
@@ -186,10 +178,11 @@ func (torrent *Torrent) fromResponse(r *colly.Response) (errs []error) {
 		torrent.FilmTitle = filmTitle.Text()
 		link, _ := filmTitle.Attr("href")
 		if torrent.FilmLink, err = url.Parse(r.Request.AbsoluteURL(link)); err != nil {
-			errs = append(errs, errors.New("invalid normalized link"))
+			responseLog.Debug("invalid normalized link")
 		}
 	} else {
-		errs = append(errs, errors.New("no normalized title element"))
+		// todo fix this
+		responseLog.Debug("no normalized title element")
 	}
 
 	if filmCategories := doc.Find(".Torrent-category span"); filmCategories.Nodes != nil {
@@ -197,13 +190,13 @@ func (torrent *Torrent) fromResponse(r *colly.Response) (errs []error) {
 			torrent.FilmCategories = append(torrent.FilmCategories, s.Text())
 		})
 	} else {
-		errs = append(errs, errors.New("no film categories"))
+		responseLog.Debug("no film categories")
 	}
 
 	if filmDescription := doc.Find(".Torrent-detail-info p"); filmDescription != nil {
 		torrent.FilmDescription = filmDescription.Text()
 	} else {
-		errs = append(errs, errors.New("no film description"))
+		responseLog.Debug("no film description")
 	}
 
 	if matches := imdbRe.FindAllString(string(r.Body), -1); matches != nil {

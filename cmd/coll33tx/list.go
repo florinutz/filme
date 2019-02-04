@@ -64,7 +64,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			log := log.WithField("url", listCmdConfig.url)
 
-			list := coll33tx.NewListCollector(OnListItemFound, OnListCrawled)
+			list := coll33tx.NewListCollector(OnListItemFound, OnListCrawled, log)
 
 			err := list.Visit(listCmdConfig.url)
 			if err != nil {
@@ -108,7 +108,7 @@ func OnListItemFound(item coll33tx.Item, col *coll33tx.ListCollector, r *colly.R
 		if err := tplTorrentFull.Execute(os.Stdout, torrent); err != nil {
 			logWithItem.WithError(err).Fatal("error while executing template")
 		}
-	})
+	}, col.Log)
 
 	if err := details.Visit(item.Href); err != nil {
 		logWithItem.WithError(err).Warn("visit error on list item page")

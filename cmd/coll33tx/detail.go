@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
+
+	"github.com/eefret/gomdb"
 
 	"github.com/florinutz/filme/collector/coll33tx"
 
@@ -47,10 +50,19 @@ var (
 		},
 
 		Run: func(cmd *cobra.Command, args []string) {
-			log.SetReportCaller(true)
-			log := log.WithField("url", detailsCmdConfig.url)
+			logger := &log.Logger{
+				Out:          os.Stderr,
+				Formatter:    &log.TextFormatter{},
+				Level:        log.DebugLevel,
+				ReportCaller: true,
+			}
 
-			detail := coll33tx.NewDetailsPageCollector(torrentFound)
+			log := logger.WithFields(log.Fields{
+				"url":  detailsCmdConfig.url,
+				"type": "detail_page",
+			})
+
+			detail := coll33tx.NewDetailsPageCollector(torrentFound, log)
 
 			if err := detail.Visit(detailsCmdConfig.url); err != nil {
 				log.WithError(err).Fatal("visit error")
@@ -89,4 +101,17 @@ leechers: %d`,
 		torrent.Seeds,
 		torrent.Leeches,
 	)
+
+	if omdbApiKey, ok := os.LookupEnv("OMDB_API_KEY"); ok {
+		gomdbApi := gomdb.Init(omdbApiKey)
+		query := &gomdb.QueryData{Title: torrent.FilmTitle, SearchType: gomdb.MovieSearch}
+		res, err := gomdbApi.Search(query)
+		if err != nil {
+			log.WithError(err).WithField("title", torrent.Title).Fatal("omdb lookup failed")
+		}
+		fmt.Println(res.Search)
+	} else {
+		log.Warn("no omdb api key")
+	}
+
 }
