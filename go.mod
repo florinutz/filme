@@ -6,6 +6,7 @@ require (
 	github.com/antchfx/htmlquery v0.0.0-20181228060131-db5c1236cbb4 // indirect
 	github.com/antchfx/xmlquery v0.0.0-20181223105952-355641961c92 // indirect
 	github.com/antchfx/xpath v0.0.0-20190129040759-c8489ed3251e // indirect
+	github.com/eefret/gomdb v0.0.0-20171206153129-8a1e0abd4449
 	github.com/fatih/color v1.7.0
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocolly/colly v1.1.0
