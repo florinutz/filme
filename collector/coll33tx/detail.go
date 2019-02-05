@@ -100,8 +100,6 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 
 	torrent.FoundOn = r.Request.URL
 
-	//logger := log.WithField("url", torrent.FoundOn.String())
-
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
 	if err != nil {
 		responseLog.WithError(err).Fatal("couldn't init doc")
