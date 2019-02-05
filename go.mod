@@ -6,6 +6,7 @@ require (
 	github.com/antchfx/htmlquery v0.0.0-20181228060131-db5c1236cbb4 // indirect
 	github.com/antchfx/xmlquery v0.0.0-20181223105952-355641961c92 // indirect
 	github.com/antchfx/xpath v0.0.0-20190129040759-c8489ed3251e // indirect
+	github.com/cweill/gotests v1.5.2 // indirect
 	github.com/eefret/gomdb v0.0.0-20171206153129-8a1e0abd4449
 	github.com/fatih/color v1.7.0
 	github.com/gobwas/glob v0.2.3 // indirect
@@ -21,5 +22,6 @@ require (
 	github.com/spf13/viper v1.3.1
 	github.com/temoto/robotstxt v0.0.0-20180810133444-97ee4a9ee6ea // indirect
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 // indirect
+	golang.org/x/tools v0.0.0-20190205201329-379209517ffe // indirect
 	google.golang.org/appengine v1.4.0 // indirect
 )
