@@ -158,7 +158,7 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 			}
 		})
 
-	if img := doc.Find(".Torrent-detail .Torrent-image img"); img.Nodes == nil {
+	if img := doc.Find(".torrent-detail .torrent-image img"); img.Nodes == nil {
 		if responseLog != nil {
 			responseLog.Debug("missing image element")
 		}
@@ -186,7 +186,7 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 		}
 	}
 
-	if filmTitle := doc.Find(".Torrent-detail-info h3 a"); filmTitle.Nodes != nil {
+	if filmTitle := doc.Find(".torrent-detail-info h3 a"); filmTitle.Nodes != nil {
 		torrent.FilmTitle = filmTitle.Text()
 		link, _ := filmTitle.Attr("href")
 		if torrent.FilmLink, err = url.Parse(r.Request.AbsoluteURL(link)); err != nil {
@@ -200,7 +200,7 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 		}
 	}
 
-	if filmCategories := doc.Find(".Torrent-category span"); filmCategories.Nodes != nil {
+	if filmCategories := doc.Find(".torrent-category span"); filmCategories.Nodes != nil {
 		filmCategories.Each(func(_ int, s *goquery.Selection) {
 			torrent.FilmCategories = append(torrent.FilmCategories, s.Text())
 		})
@@ -210,7 +210,7 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 		}
 	}
 
-	if filmDescription := doc.Find(".Torrent-detail-info p"); filmDescription != nil {
+	if filmDescription := doc.Find(".torrent-detail-info p"); filmDescription != nil {
 		torrent.FilmDescription = filmDescription.Text()
 	} else {
 		if responseLog != nil {
@@ -234,7 +234,7 @@ func (dc *DetailsCollector) CanHandleResponse(r *colly.Response) bool {
 	if title := doc.Find(".box-info-heading h1"); title.Nodes == nil {
 		return false
 	}
-	if img := doc.Find(".Torrent-detail .Torrent-image img"); img.Nodes == nil {
+	if img := doc.Find(".torrent-detail .torrent-image img"); img.Nodes == nil {
 		return false
 	}
 	return true
