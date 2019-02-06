@@ -168,7 +168,11 @@ func getDetailsPageBox(doc *goquery.Document) (result struct {
 		case "Total size":
 			result.TotalSize = value
 		case "Uploaded By":
-			result.UploadedBy, _ = s.Children().Eq(1).Find("a").Attr("href")
+			if val, hasAttr := s.Children().Eq(1).Find("a").Attr("href"); hasAttr {
+				val = strings.TrimLeft(val, "/user/")
+				val = strings.TrimRight(val, "/")
+				result.UploadedBy = val
+			}
 		case "Downloads":
 			result.Downloads, _ = strconv.Atoi(value)
 		case "Date uploaded":
@@ -177,6 +181,8 @@ func getDetailsPageBox(doc *goquery.Document) (result struct {
 			result.Seeders, _ = strconv.Atoi(value)
 		case "Leechers":
 			result.Leechers, _ = strconv.Atoi(value)
+		case "Last checked":
+			result.LastChecked = value
 		}
 	})
 
@@ -222,6 +228,39 @@ func getDetailsPageFilm(doc *goquery.Document, request *colly.Request) (
 
 	film.url, err = url.Parse(request.AbsoluteURL(href))
 
+	return
+}
+
+func getDetailsPageFilmGenres(doc *goquery.Document) (categories []string, err error) {
+	const selector = ".torrent-category span"
+	selection := doc.Find(selector)
+	if selection.Nodes == nil {
+		err = fmt.Errorf("missing film categories at selector '%s'", selector)
+		return
+	}
+	selection.Each(func(_ int, s *goquery.Selection) {
+		categories = append(categories, s.Text())
+	})
+	return
+}
+
+func getDetailsPageFilmDescription(doc *goquery.Document) (description string, err error) {
+	const selector = ".torrent-detail-info p"
+	selection := doc.Find(selector)
+	if selection.Nodes == nil {
+		err = fmt.Errorf("missing film description element at selector '%s'", selector)
+		return
+	}
+	description = strings.TrimSpace(selection.Text())
+	return
+}
+
+func getDetailsPageImdb(html string, re *regexp.Regexp) (imdb *url.URL, err error) {
+	if matches := re.FindAllString(html, -1); matches != nil {
+		imdb, _ = url.Parse(matches[0])
+		return
+	}
+	err = errors.New("couldn't find an imdb link in page")
 	return
 }
 
@@ -272,27 +311,15 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 	torrent.FilmCleanTitle = film.title
 	torrent.FilmLink = film.url
 
-	if filmCategories := doc.Find(".torrent-category span"); filmCategories.Nodes != nil {
-		filmCategories.Each(func(_ int, s *goquery.Selection) {
-			torrent.FilmCategories = append(torrent.FilmCategories, s.Text())
-		})
-	} else {
-		if responseLog != nil {
-			responseLog.Debug("no film categories")
-		}
+	if torrent.Genres, err = getDetailsPageFilmGenres(doc); err != nil && responseLog != nil {
+		responseLog.WithError(err).Debug()
 	}
 
-	if filmDescription := doc.Find(".torrent-detail-info p"); filmDescription != nil {
-		torrent.FilmDescription = filmDescription.Text()
-	} else {
-		if responseLog != nil {
-			responseLog.Debug("no film description")
-		}
+	if torrent.FilmDescription, err = getDetailsPageFilmDescription(doc); err != nil && responseLog != nil {
+		responseLog.WithError(err).Debug()
 	}
 
-	if matches := imdbRe.FindAllString(string(r.Body), -1); matches != nil {
-		torrent.IMDB, _ = url.Parse(matches[0])
-	}
+	torrent.IMDB, _ = getDetailsPageImdb(string(r.Body), imdbRe)
 
 	return
 }
