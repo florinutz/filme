@@ -131,7 +131,7 @@ func getDetailsPageMagnet(doc *goquery.Document) (magnet string, err error) {
 	return magnet, nil
 }
 
-func getDetailsPageBox(doc *goquery.Document) (result *struct {
+func getDetailsPageBox(doc *goquery.Document) (result struct {
 	Category     string
 	Type         string
 	Language     string
@@ -152,7 +152,8 @@ func getDetailsPageBox(doc *goquery.Document) (result *struct {
 	}
 	items := doc.Find("ul.list li").FilterFunction(infoItemFilterFunc)
 	if items.Nodes == nil {
-		return nil, errors.New("no box items found")
+		err = errors.New("no box items found")
+		return
 	}
 	items.Each(func(_ int, s *goquery.Selection) {
 		label := s.Children().Eq(0).Text()
@@ -200,7 +201,7 @@ func getDetailsPageImage(doc *goquery.Document) (image *url.URL, err error) {
 }
 
 func getDetailsPageFilm(doc *goquery.Document, request *colly.Request) (
-	film *struct {
+	film struct {
 		title string
 		url   *url.URL
 	},
@@ -209,7 +210,8 @@ func getDetailsPageFilm(doc *goquery.Document, request *colly.Request) (
 	const selector = ".torrent-detail-info h3 a"
 	selection := doc.Find(selector)
 	if selection.Nodes == nil {
-		return nil, fmt.Errorf("missing film info (title/link) at selector '%s'", selector)
+		err = fmt.Errorf("missing film info (title/link) at selector '%s'", selector)
+		return
 	}
 	film.title = selection.Text()
 
