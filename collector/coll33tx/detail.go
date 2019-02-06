@@ -102,11 +102,15 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
 	if err != nil {
-		responseLog.WithError(err).Fatal("couldn't init doc")
+		if responseLog != nil {
+			responseLog.WithError(err).Fatal("couldn't init doc")
+		}
 	}
 
 	if title := doc.Find(".box-info-heading h1"); title.Nodes == nil {
-		responseLog.Debug("missing title element")
+		if responseLog != nil {
+			responseLog.Debug("missing title element")
+		}
 	} else {
 		torrent.Title = strings.TrimSpace(title.Text())
 	}
@@ -115,7 +119,9 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 		href, _ := s.Attr("href")
 		return strings.HasPrefix(href, "magnet:?")
 	}); links.Nodes == nil {
-		responseLog.Debug("missing magnet link element")
+		if responseLog != nil {
+			responseLog.Debug("missing magnet link element")
+		}
 	} else {
 		torrent.Magnet, _ = links.Attr("href")
 	}
@@ -153,16 +159,24 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 		})
 
 	if img := doc.Find(".Torrent-detail .Torrent-image img"); img.Nodes == nil {
-		responseLog.Debug("missing image element")
+		if responseLog != nil {
+			responseLog.Debug("missing image element")
+		}
 	} else {
 		if src, exists := img.Attr("src"); !exists {
-			responseLog.Debug("image element has no src")
+			if responseLog != nil {
+				responseLog.Debug("image element has no src")
+			}
 		} else {
 			if strings.HasSuffix(src, BlankImage) {
-				responseLog.Debug("default image")
+				if responseLog != nil {
+					responseLog.Debug("default image")
+				}
 			} else {
 				if torrent.Image, err = url.Parse(src); err != nil {
-					responseLog.Debug("invalid image url")
+					if responseLog != nil {
+						responseLog.Debug("invalid image url")
+					}
 				} else {
 					if strings.HasPrefix(torrent.Image.String(), "//") {
 						torrent.Image, _ = url.Parse("http://" + torrent.Image.String()[2:])
@@ -176,11 +190,14 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 		torrent.FilmTitle = filmTitle.Text()
 		link, _ := filmTitle.Attr("href")
 		if torrent.FilmLink, err = url.Parse(r.Request.AbsoluteURL(link)); err != nil {
-			responseLog.Debug("invalid normalized link")
+			if responseLog != nil {
+				responseLog.Debug("invalid normalized link")
+			}
 		}
 	} else {
-		// todo fix this
-		responseLog.Debug("no normalized title element")
+		if responseLog != nil {
+			responseLog.Debug("no normalized title element")
+		}
 	}
 
 	if filmCategories := doc.Find(".Torrent-category span"); filmCategories.Nodes != nil {
@@ -188,13 +205,17 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 			torrent.FilmCategories = append(torrent.FilmCategories, s.Text())
 		})
 	} else {
-		responseLog.Debug("no film categories")
+		if responseLog != nil {
+			responseLog.Debug("no film categories")
+		}
 	}
 
 	if filmDescription := doc.Find(".Torrent-detail-info p"); filmDescription != nil {
 		torrent.FilmDescription = filmDescription.Text()
 	} else {
-		responseLog.Debug("no film description")
+		if responseLog != nil {
+			responseLog.Debug("no film description")
+		}
 	}
 
 	if matches := imdbRe.FindAllString(string(r.Body), -1); matches != nil {
