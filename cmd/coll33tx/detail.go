@@ -98,13 +98,13 @@ seeders: %d
 leechers: %d`,
 		strings.Trim(torrent.Title, " "),
 		torrent.Magnet,
-		torrent.Seeds,
-		torrent.Leeches,
+		torrent.Seeders,
+		torrent.Leechers,
 	)
 
 	if omdbApiKey, ok := os.LookupEnv("OMDB_API_KEY"); ok {
 		gomdbApi := gomdb.Init(omdbApiKey)
-		query := &gomdb.QueryData{Title: torrent.FilmTitle, SearchType: gomdb.MovieSearch}
+		query := &gomdb.QueryData{Title: torrent.FilmCleanTitle, SearchType: gomdb.MovieSearch}
 		res, err := gomdbApi.Search(query)
 		if err != nil {
 			log.WithError(err).WithField("title", torrent.Title).Fatal("omdb lookup failed")

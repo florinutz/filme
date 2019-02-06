@@ -38,8 +38,8 @@ func TestTorrent_fromResponse_Title(t *testing.T) {
 		t.Fatal("wrong Title")
 	}
 
-	if torrent.FilmTitle != "House Party" {
-		t.Fatal("wrong FilmTitle")
+	if torrent.FilmCleanTitle != "House Party" {
+		t.Fatal("wrong FilmCleanTitle")
 	}
 
 	if torrent.FoundOn.String() != pageLink {

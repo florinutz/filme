@@ -1,6 +1,8 @@
 package coll33tx
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 	"sync"
@@ -23,7 +25,7 @@ var imdbRe = regexp.MustCompile(`(?m)https?://(www\.)?imdb.com/title/tt(\d)+`)
 // Torrent represents the data onItemFound on a Torrent details page
 type Torrent struct {
 	Title           string
-	FilmTitle       string
+	FilmCleanTitle  string
 	FilmLink        *url.URL
 	FilmCategories  []string
 	FilmDescription string
@@ -37,11 +39,12 @@ type Torrent struct {
 	Type            string
 	Language        string
 	TotalSize       string
+	UploadedBy      string
 	Downloads       int
 	LastChecked     string
 	DateUploaded    string
-	Seeds           int
-	Leeches         int
+	Seeders         int
+	Leechers        int
 }
 
 // TorrentFoundCallback is the type the callback func that's be called when a Torrent was onItemFound
@@ -94,111 +97,178 @@ func (dc *DetailsCollector) OnScraped(r *colly.Response) {
 	dc.found(dc.Torrent)
 }
 
+func getDetailsPageDoc(r *colly.Response) (doc *goquery.Document, err error) {
+	return goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
+}
+
+func getDetailsPageTitle(doc *goquery.Document) (title string, err error) {
+	selector := ".box-info-heading h1"
+	selection := doc.Find(selector)
+	if selection.Nodes == nil {
+		err = fmt.Errorf("couldn't find the title: no element at selector %s", selector)
+		return
+	}
+	title = strings.TrimSpace(selection.Text())
+	return
+}
+
+func getDetailsPageMagnet(doc *goquery.Document) (magnet string, err error) {
+	filterByMagnetSchemeFunc := func(_ int, s *goquery.Selection) bool {
+		href, _ := s.Attr("href")
+		return strings.HasPrefix(href, "magnet:?")
+	}
+
+	allLinks := doc.Find("a[href]")
+
+	selection := allLinks.FilterFunction(filterByMagnetSchemeFunc)
+	if selection.Nodes == nil {
+		err = errors.New("missing magnet link")
+		return
+	}
+
+	magnet, _ = selection.Attr("href")
+
+	return magnet, nil
+}
+
+func getDetailsPageBox(doc *goquery.Document) (result *struct {
+	Category     string
+	Type         string
+	Language     string
+	TotalSize    string
+	UploadedBy   string
+	Downloads    int
+	LastChecked  string
+	DateUploaded string
+	Seeders      int
+	Leechers     int
+}, err error) {
+	infoItemFilterFunc := func(_ int, s *goquery.Selection) bool {
+		hasExactlyTwoChildren := s.Children().Length() == 2
+		firstChildIsStrong := s.Children().Eq(0).Is("strong")
+		secondChildIsSpan := s.Children().Eq(1).Is("span")
+
+		return hasExactlyTwoChildren && firstChildIsStrong && secondChildIsSpan
+	}
+	items := doc.Find("ul.list li").FilterFunction(infoItemFilterFunc)
+	if items.Nodes == nil {
+		return nil, errors.New("no box items found")
+	}
+	items.Each(func(_ int, s *goquery.Selection) {
+		label := s.Children().Eq(0).Text()
+		value := s.Children().Eq(1).Text()
+		switch label {
+		case "Category":
+			result.Category = value
+		case "Type":
+			result.Type = value
+		case "Language":
+			result.Language = value
+		case "Total size":
+			result.TotalSize = value
+		case "Uploaded By":
+			result.UploadedBy, _ = s.Children().Eq(1).Find("a").Attr("href")
+		case "Downloads":
+			result.Downloads, _ = strconv.Atoi(value)
+		case "Date uploaded":
+			result.DateUploaded = value
+		case "Seeders":
+			result.Seeders, _ = strconv.Atoi(value)
+		case "Leechers":
+			result.Leechers, _ = strconv.Atoi(value)
+		}
+	})
+
+	return
+}
+
+func getDetailsPageImage(doc *goquery.Document) (image *url.URL, err error) {
+	const imgSelector = ".torrent-detail .torrent-image img"
+	selection := doc.Find(imgSelector)
+	if selection.Nodes == nil {
+		return nil, fmt.Errorf("missing image element at selector '%s'", imgSelector)
+	}
+	src, exists := selection.Attr("src")
+	if !exists {
+		return nil, errors.New("image has no src attribute")
+	}
+	if strings.HasSuffix(src, BlankImage) {
+		return nil, errors.New("image is the default one")
+	}
+
+	return url.Parse(src)
+}
+
+func getDetailsPageFilm(doc *goquery.Document, request *colly.Request) (
+	film *struct {
+		title string
+		url   *url.URL
+	},
+	err error,
+) {
+	const selector = ".torrent-detail-info h3 a"
+	selection := doc.Find(selector)
+	if selection.Nodes == nil {
+		return nil, fmt.Errorf("missing film info (title/link) at selector '%s'", selector)
+	}
+	film.title = selection.Text()
+
+	href, exists := selection.Attr("href")
+	if !exists {
+		return film, errors.New("film title link has no href")
+	}
+
+	film.url, err = url.Parse(request.AbsoluteURL(href))
+
+	return
+}
+
 func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	torrent.FoundOn = r.Request.URL
 
-	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
+	doc, err := getDetailsPageDoc(r)
 	if err != nil {
 		if responseLog != nil {
 			responseLog.WithError(err).Fatal("couldn't init doc")
 		}
 	}
 
-	if title := doc.Find(".box-info-heading h1"); title.Nodes == nil {
-		if responseLog != nil {
-			responseLog.Debug("missing title element")
-		}
-	} else {
-		torrent.Title = strings.TrimSpace(title.Text())
+	if torrent.Title, err = getDetailsPageTitle(doc); err != nil && responseLog != nil {
+		responseLog.WithError(err).Debug("missing title element")
 	}
 
-	if links := doc.Find("a[href]").FilterFunction(func(_ int, s *goquery.Selection) bool {
-		href, _ := s.Attr("href")
-		return strings.HasPrefix(href, "magnet:?")
-	}); links.Nodes == nil {
-		if responseLog != nil {
-			responseLog.Debug("missing magnet link element")
-		}
-	} else {
-		torrent.Magnet, _ = links.Attr("href")
+	if torrent.Magnet, err = getDetailsPageMagnet(doc); err != nil && responseLog != nil {
+		responseLog.WithError(err).Debug("missing magnet")
 	}
 
-	doc.Find("ul.list li").
-		FilterFunction(func(_ int, s *goquery.Selection) bool {
-			hasExactlyTwoChildren := s.Children().Length() == 2
-			firstChildIsStrong := s.Children().Eq(0).Is("strong")
-			secondChildIsSpan := s.Children().Eq(1).Is("span")
-
-			return hasExactlyTwoChildren && firstChildIsStrong && secondChildIsSpan
-		}).
-		Each(func(_ int, s *goquery.Selection) {
-			label := s.Children().Eq(0).Text()
-			value := s.Children().Eq(1).Text()
-
-			switch label {
-			case "Category":
-				torrent.Category = value
-			case "Type":
-				torrent.Type = value
-			case "Language":
-				torrent.Language = value
-			case "Total size":
-				torrent.TotalSize = value
-			case "Downloads":
-				torrent.Downloads, _ = strconv.Atoi(value)
-			case "Date uploaded":
-				torrent.DateUploaded = value
-			case "Seeders":
-				torrent.Seeds, _ = strconv.Atoi(value)
-			case "Leechers":
-				torrent.Leeches, _ = strconv.Atoi(value)
-			}
-		})
-
-	if img := doc.Find(".torrent-detail .torrent-image img"); img.Nodes == nil {
-		if responseLog != nil {
-			responseLog.Debug("missing image element")
-		}
-	} else {
-		if src, exists := img.Attr("src"); !exists {
-			if responseLog != nil {
-				responseLog.Debug("image element has no src")
-			}
-		} else {
-			if strings.HasSuffix(src, BlankImage) {
-				if responseLog != nil {
-					responseLog.Debug("default image")
-				}
-			} else {
-				if torrent.Image, err = url.Parse(src); err != nil {
-					if responseLog != nil {
-						responseLog.Debug("invalid image url")
-					}
-				} else {
-					if strings.HasPrefix(torrent.Image.String(), "//") {
-						torrent.Image, _ = url.Parse("http://" + torrent.Image.String()[2:])
-					}
-				}
-			}
-		}
+	if box, err := getDetailsPageBox(doc); err == nil {
+		torrent.Category = box.Category
+		torrent.Type = box.Type
+		torrent.Language = box.Language
+		torrent.TotalSize = box.TotalSize
+		torrent.UploadedBy = box.UploadedBy
+		torrent.Downloads = box.Downloads
+		torrent.LastChecked = box.LastChecked
+		torrent.DateUploaded = box.DateUploaded
+		torrent.Seeders = box.Seeders
+		torrent.Leechers = box.Leechers
+	} else if responseLog != nil {
+		responseLog.WithError(err).Warn()
 	}
 
-	if filmTitle := doc.Find(".torrent-detail-info h3 a"); filmTitle.Nodes != nil {
-		torrent.FilmTitle = filmTitle.Text()
-		link, _ := filmTitle.Attr("href")
-		if torrent.FilmLink, err = url.Parse(r.Request.AbsoluteURL(link)); err != nil {
-			if responseLog != nil {
-				responseLog.Debug("invalid normalized link")
-			}
-		}
-	} else {
-		if responseLog != nil {
-			responseLog.Debug("no normalized title element")
-		}
+	if torrent.Image, err = getDetailsPageImage(doc); err != nil && responseLog != nil {
+		responseLog.WithError(err).Debug()
 	}
+
+	film, err := getDetailsPageFilm(doc, r.Request)
+	if err != nil && responseLog != nil {
+		responseLog.WithError(err).Debug()
+	}
+	torrent.FilmCleanTitle = film.title
+	torrent.FilmLink = film.url
 
 	if filmCategories := doc.Find(".torrent-category span"); filmCategories.Nodes != nil {
 		filmCategories.Each(func(_ int, s *goquery.Selection) {
