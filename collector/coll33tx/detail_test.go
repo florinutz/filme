@@ -12,8 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func mockDetailPageResponse(pageUrl string) *colly.Response {
-	src, err := ioutil.ReadFile("html/detail")
+func mockResponse(pageUrl, b64File string) *colly.Response {
+	src, err := ioutil.ReadFile(b64File)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,7 +34,7 @@ func TestTorrent_fromResponse(t *testing.T) {
 	var torrent Torrent
 	const pageLink = "https://1337x.to/torrent/3569899/House-Party-1990-WEBRip-720p-YTS-YIFY/"
 
-	torrent.fromResponse(mockDetailPageResponse(pageLink), log.NewEntry(log.New()))
+	torrent.fromResponse(mockResponse(pageLink, "html/detail"), log.NewEntry(log.New()))
 
 	t.Run("Title", func(t *testing.T) {
 		expected := "House Party (1990) [WEBRip] [1080p] [YTS] [YIFY]"

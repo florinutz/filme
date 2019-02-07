@@ -2,6 +2,7 @@ package coll33tx
 
 import (
 	"bytes"
+	"fmt"
 	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
@@ -20,66 +21,82 @@ type Item struct {
 	Leeches int
 }
 
-type List []*Item
-
-// TorrentFoundCallbsack is the type for a callback func to be called when we came across a list item
-type ListItemFoundCallback func(item Item, listCollector *ListCollector, response *colly.Response)
-
-// CrawlFinishedCallback is the type for the callback func to be called when all the list list were parsed into the list
-type CrawlFinishedCallback func(list List, response *colly.Response)
+type ListPageCrawledCallback func(page int, items []*Item, response *colly.Response)
 
 // ListCollector is a wrapper around the colly collector + listing page data
 type ListCollector struct {
 	*colly.Collector
-	List        List
-	OnItemFound ListItemFoundCallback
-	OnCrawled   CrawlFinishedCallback
-	Log         *log.Entry
+	Data          map[int][]*Item // page => items
+	totalPages    int
+	OnPageCrawled ListPageCrawledCallback
+	Log           *log.Entry
 }
 
 func NewListCollector(
-	onItemFound ListItemFoundCallback,
-	onListCrawled CrawlFinishedCallback,
+	onPageCrawled ListPageCrawledCallback,
 	log *log.Entry,
 	options ...func(collector *colly.Collector),
 ) *ListCollector {
-	listCollector := ListCollector{
-		Collector:   initCollector(log, options...),
-		OnItemFound: onItemFound,
-		OnCrawled:   onListCrawled,
+	col := ListCollector{
+		Collector:     initCollector(log, options...),
+		OnPageCrawled: onPageCrawled,
+		Log:           log,
 	}
-	listCollector.Collector.OnHTML("td.name a:nth-of-type(2)", listCollector.itemHandler)
-	listCollector.Collector.OnScraped(func(r *colly.Response) {
-		listCollector.OnCrawled(listCollector.List, r)
+	col.Collector.OnScraped(func(r *colly.Response) {
+		doc, err := getResponseDoc(r)
+		if err != nil {
+			col.Log.WithError(err).Error("couldn't parse page document")
+			return
+		}
+
+		items, err := getPageItems(doc, r.Request)
+
+		nextPage, err := getNextPage(doc)
+
+		currentPage := 1
+		currentPage, err = getCurrentPage(doc)
+
+		fmt.Printf()
 	})
 
-	return &listCollector
+	return &col
 }
 
-// onListItemHandler parses the  list and launches a request for each item page
-func (col *ListCollector) itemHandler(e *colly.HTMLElement) {
-	linkHref := e.Request.AbsoluteURL(e.Attr("href"))
-
-	log.WithFields(log.Fields{"title": e.Text, "href": linkHref}).Debug("list item")
-
-	_, err := url.Parse(linkHref)
-	if err != nil {
-		log.WithError(err).WithField("href", linkHref).Warn("Invalid href in list, skipping it.")
+func getCurrentPage(doc *goquery.Document) (page int, err error) {
+	selector := ".pagination li.active"
+	selection := doc.Find(selector)
+	if selection.Nodes == nil {
+		err = fmt.Errorf("couldn't find the current page: no element at selector '%s'", selector)
 		return
 	}
+	return strconv.Atoi(selection.Text())
+}
 
-	// trigger the onFound event with the data as input
-	listItem := &Item{}
-
-	errs := listItem.fromTitleLink(e)
-	if errs != nil {
-		log.WithField("errs", errs).Errorf("item '%s' is invalid", e.Text)
+func getNextPage(doc *goquery.Document) (url *url.URL, err error) {
+	selector := ".pagination li.active"
+	selection := doc.Find(selector)
+	if selection.Nodes == nil {
+		err = fmt.Errorf("couldn't find the current page: no element at selector '%s'", selector)
+		return
 	}
+	return strconv.Atoi(selection.Text())
+}
 
-	col.List = append(col.List, listItem)
-
-	// trigger the event even on incomplete Item due to strtoint conversion errors
-	col.OnItemFound(*listItem, col, e.Response)
+func getPageItems(doc *goquery.Document, req *colly.Request) (items []*Item, err error) {
+	selector := "td.name a:nth-of-type(2)"
+	selection := doc.Find(selector)
+	if selection.Nodes == nil {
+		err = fmt.Errorf("couldn't select page items using selector '%s'", selector)
+		return
+	}
+	for _, node := range selection.Nodes {
+		item := Item{
+			Name: node.Data,
+			// todo href?
+		}
+		items = append(items, &item)
+	}
+	return
 }
 
 func (i *Item) fromTitleLink(e *colly.HTMLElement) (errs []error) {

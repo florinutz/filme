@@ -97,7 +97,7 @@ func (dc *DetailsCollector) OnScraped(r *colly.Response) {
 	dc.found(dc.Torrent)
 }
 
-func getDetailsPageDoc(r *colly.Response) (doc *goquery.Document, err error) {
+func getResponseDoc(r *colly.Response) (doc *goquery.Document, err error) {
 	return goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
 }
 
@@ -264,25 +264,23 @@ func getDetailsPageImdb(html string, re *regexp.Regexp) (imdb *url.URL, err erro
 	return
 }
 
-func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) {
+func (torrent *Torrent) fromResponse(r *colly.Response, log *log.Entry) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	torrent.FoundOn = r.Request.URL
 
-	doc, err := getDetailsPageDoc(r)
-	if err != nil {
-		if responseLog != nil {
-			responseLog.WithError(err).Fatal("couldn't init doc")
-		}
+	doc, err := getResponseDoc(r)
+	if err != nil && log != nil {
+		log.WithError(err).Fatal("couldn't init doc")
 	}
 
-	if torrent.Title, err = getDetailsPageTitle(doc); err != nil && responseLog != nil {
-		responseLog.WithError(err).Debug("missing title element")
+	if torrent.Title, err = getDetailsPageTitle(doc); err != nil && log != nil {
+		log.WithError(err).Debug("missing title element")
 	}
 
-	if torrent.Magnet, err = getDetailsPageMagnet(doc); err != nil && responseLog != nil {
-		responseLog.WithError(err).Debug("missing magnet")
+	if torrent.Magnet, err = getDetailsPageMagnet(doc); err != nil && log != nil {
+		log.WithError(err).Debug("missing magnet")
 	}
 
 	if box, err := getDetailsPageBox(doc); err == nil {
@@ -296,27 +294,27 @@ func (torrent *Torrent) fromResponse(r *colly.Response, responseLog *log.Entry) 
 		torrent.DateUploaded = box.DateUploaded
 		torrent.Seeders = box.Seeders
 		torrent.Leechers = box.Leechers
-	} else if responseLog != nil {
-		responseLog.WithError(err).Warn()
+	} else if log != nil {
+		log.WithError(err).Warn()
 	}
 
-	if torrent.Image, err = getDetailsPageImage(doc); err != nil && responseLog != nil {
-		responseLog.WithError(err).Debug()
+	if torrent.Image, err = getDetailsPageImage(doc); err != nil && log != nil {
+		log.WithError(err).Debug()
 	}
 
 	film, err := getDetailsPageFilm(doc, r.Request)
-	if err != nil && responseLog != nil {
-		responseLog.WithError(err).Debug()
+	if err != nil && log != nil {
+		log.WithError(err).Debug()
 	}
 	torrent.FilmCleanTitle = film.title
 	torrent.FilmLink = film.url
 
-	if torrent.Genres, err = getDetailsPageFilmGenres(doc); err != nil && responseLog != nil {
-		responseLog.WithError(err).Debug()
+	if torrent.Genres, err = getDetailsPageFilmGenres(doc); err != nil && log != nil {
+		log.WithError(err).Debug()
 	}
 
-	if torrent.FilmDescription, err = getDetailsPageFilmDescription(doc); err != nil && responseLog != nil {
-		responseLog.WithError(err).Debug()
+	if torrent.FilmDescription, err = getDetailsPageFilmDescription(doc); err != nil && log != nil {
+		log.WithError(err).Debug()
 	}
 
 	torrent.IMDB, _ = getDetailsPageImdb(string(r.Body), imdbRe)
