@@ -51,16 +51,16 @@ func NewListCollector(
 		if errItems != nil {
 			col.Log.WithError(err).Error("didn't find any list elements")
 		}
-		nextPage, errNextPage := getNextPage(doc)
-		if errNextPage != nil {
-			col.Log.WithError(errNextPage).Warn("missing nextPage")
+		pagesCount, errPagesCount := getPagesCount(doc)
+		if errPagesCount != nil {
+			col.Log.WithError(errPagesCount).Warn("missing pagesCount")
 		}
 		currentPage, errCurrentPage := getCurrentPage(doc)
 		if errCurrentPage != nil {
 			col.Log.WithError(errCurrentPage).Warn("missing currentPage")
 		}
 
-		col.OnPageCrawled(items, currentPage, nextPage, r, col.Log)
+		col.OnPageCrawled(items, currentPage, pagesCount, r, col.Log)
 	})
 
 	return &col
@@ -76,7 +76,7 @@ func getCurrentPage(doc *goquery.Document) (page int, err error) {
 	return strconv.Atoi(selection.Text())
 }
 
-func getNextPage(doc *goquery.Document) (url *url.URL, err error) {
+func getPagesCount(doc *goquery.Document) (url *url.URL, err error) {
 	selector := ".pagination li.active"
 	selection := doc.Find(selector)
 	if selection.Nodes == nil {
