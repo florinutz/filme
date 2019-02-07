@@ -5,11 +5,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/florinutz/filme/util/value"
+	"github.com/florinutz/filme/cmd/util/value"
 
 	"github.com/gocolly/colly"
 
-	"github.com/florinutz/filme/collector/coll33tx"
+	"github.com/florinutz/filme/pkg/collector/coll33tx"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -60,7 +60,7 @@ var (
 			return nil
 		},
 
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			log := log.WithField("start_url", listCmdConfig.url)
 
 			list := coll33tx.NewListCollector(onListPageCrawled, log)
@@ -70,6 +70,8 @@ var (
 				log.WithError(err).Warn("visit error")
 			}
 			list.Wait()
+
+			return nil
 		},
 	}
 

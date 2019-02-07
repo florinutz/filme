@@ -9,7 +9,7 @@ import (
 
 	"github.com/eefret/gomdb"
 
-	"github.com/florinutz/filme/collector/coll33tx"
+	"github.com/florinutz/filme/pkg/collector/coll33tx"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

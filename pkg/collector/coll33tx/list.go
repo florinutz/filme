@@ -26,7 +26,7 @@ type ListPageCrawledCallback func(items []*Item, currentPage int, nextPage *url.
 type ListCollector struct {
 	*colly.Collector
 	Data          map[int][]*Item // page => items
-	totalPages    int
+	TotalPages    int
 	OnPageCrawled ListPageCrawledCallback
 	Log           *log.Entry
 }
@@ -74,33 +74,6 @@ func getCurrentPage(doc *goquery.Document) (page int, err error) {
 		return
 	}
 	return strconv.Atoi(selection.Text())
-}
-
-func getPagesCount(doc *goquery.Document) (url *url.URL, err error) {
-	selector := ".pagination li.active"
-	selection := doc.Find(selector)
-	if selection.Nodes == nil {
-		err = fmt.Errorf("couldn't find the current page: no element at selector '%s'", selector)
-		return
-	}
-	return
-}
-
-func getPageItems(doc *goquery.Document, req *colly.Request) (items []*Item, err error) {
-	selector := "td.name a:nth-of-type(2)"
-	selection := doc.Find(selector)
-	if selection.Nodes == nil {
-		err = fmt.Errorf("couldn't select page items using selector '%s'", selector)
-		return
-	}
-	for _, node := range selection.Nodes {
-		item := Item{
-			Name: node.Data,
-			// todo href?
-		}
-		items = append(items, &item)
-	}
-	return
 }
 
 /*func (i *Item) fromTitleLink(e *colly.HTMLElement) (errs []error) {

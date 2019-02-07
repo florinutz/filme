@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	debug "github.com/florinutz/filme/collector"
+	debug "github.com/florinutz/filme/pkg/collector"
 
 	"github.com/gocolly/colly"
 	collyExtensions "github.com/gocolly/colly/extensions"
