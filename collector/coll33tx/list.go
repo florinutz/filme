@@ -1,7 +1,6 @@
 package coll33tx
 
 import (
-	"bytes"
 	"fmt"
 	"net/url"
 
@@ -21,7 +20,7 @@ type Item struct {
 	Leeches int
 }
 
-type ListPageCrawledCallback func(page int, items []*Item, response *colly.Response)
+type ListPageCrawledCallback func(items []*Item, currentPage int, nextPage *url.URL, response *colly.Response, log *log.Entry)
 
 // ListCollector is a wrapper around the colly collector + listing page data
 type ListCollector struct {
@@ -48,15 +47,20 @@ func NewListCollector(
 			col.Log.WithError(err).Error("couldn't parse page document")
 			return
 		}
+		items, errItems := getPageItems(doc, r.Request)
+		if errItems != nil {
+			col.Log.WithError(err).Error("didn't find any list elements")
+		}
+		nextPage, errNextPage := getNextPage(doc)
+		if errNextPage != nil {
+			col.Log.WithError(errNextPage).Warn("missing nextPage")
+		}
+		currentPage, errCurrentPage := getCurrentPage(doc)
+		if errCurrentPage != nil {
+			col.Log.WithError(errCurrentPage).Warn("missing currentPage")
+		}
 
-		items, err := getPageItems(doc, r.Request)
-
-		nextPage, err := getNextPage(doc)
-
-		currentPage := 1
-		currentPage, err = getCurrentPage(doc)
-
-		fmt.Printf()
+		col.OnPageCrawled(items, currentPage, nextPage, r, col.Log)
 	})
 
 	return &col
@@ -79,7 +83,7 @@ func getNextPage(doc *goquery.Document) (url *url.URL, err error) {
 		err = fmt.Errorf("couldn't find the current page: no element at selector '%s'", selector)
 		return
 	}
-	return strconv.Atoi(selection.Text())
+	return
 }
 
 func getPageItems(doc *goquery.Document, req *colly.Request) (items []*Item, err error) {
@@ -99,7 +103,7 @@ func getPageItems(doc *goquery.Document, req *colly.Request) (items []*Item, err
 	return
 }
 
-func (i *Item) fromTitleLink(e *colly.HTMLElement) (errs []error) {
+/*func (i *Item) fromTitleLink(e *colly.HTMLElement) (errs []error) {
 	i.Name = e.Text
 	i.Href = e.Request.AbsoluteURL(e.Attr("href"))
 
@@ -134,4 +138,4 @@ func (col *ListCollector) CanHandleResponse(r *colly.Response) bool {
 	}
 
 	return true
-}
+}*/

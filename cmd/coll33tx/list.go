@@ -3,7 +3,6 @@ package coll33tx
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/florinutz/filme/util/value"
@@ -62,9 +61,9 @@ var (
 		},
 
 		Run: func(cmd *cobra.Command, args []string) {
-			log := log.WithField("url", listCmdConfig.url)
+			log := log.WithField("start_url", listCmdConfig.url)
 
-			list := coll33tx.NewListCollector(OnListItemFound, OnListCrawled, log)
+			list := coll33tx.NewListCollector(onListPageCrawled, log)
 
 			err := list.Visit(listCmdConfig.url)
 			if err != nil {
@@ -94,8 +93,13 @@ var (
    {{if .FilmDescription}}description: {{.FilmDescription|h}}{{end}}`))
 )
 
+func onListPageCrawled(items []*coll33tx.Item, currentPage int, nextPage *url.URL, response *colly.Response,
+	log *log.Entry) {
+	fmt.Printf("currentPage %d\nnextPage %s\nItems:\n%q\n", currentPage, nextPage, items)
+}
+
 // OnListItemFound is the callback executed when a new list item was found
-func OnListItemFound(item coll33tx.Item, col *coll33tx.ListCollector, r *colly.Response) {
+/*func OnListItemFound(item coll33tx.Item, col *coll33tx.ListCollector, r *colly.Response) {
 	logWithItem := log.WithField("item", item).WithField("url", r.Request.URL.String())
 
 	if !listCmdConfig.withDetails {
@@ -131,3 +135,4 @@ func OnListCrawled(list coll33tx.List, r *colly.Response) {
 		fmt.Printf("%s: %s\n", item.Name, item.Href)
 	}
 }
+*/
