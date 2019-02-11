@@ -1,0 +1,22 @@
+{
+  "Vendor": false,
+  "Deadline": "2m",
+  "Sort": ["linter", "severity", "path", "line"],
+  "EnableGC": true,
+  "WarnUnmatchedDirective": true,
+  "Exclude": [
+    ".*/go/pkg/mod/.*"
+  ],
+  "Disable": [
+    "gofmt",
+    "goimports",
+    "golint",
+    "nakedret",
+    "gotype"
+  ],
+  "Aggregate": true,
+  "Fast": true,
+  "Test": false,
+  "Cyclo": 16,
+  "LineLength": 200
+}

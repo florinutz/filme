@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/florinutz/filme/cmd/util/value"
+	"github.com/florinutz/filme/pkg/config/value"
 
 	"github.com/gocolly/colly"
 

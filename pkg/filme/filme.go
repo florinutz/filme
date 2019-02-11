@@ -6,3 +6,9 @@ import "github.com/florinutz/filme/pkg/config"
 type Filme struct {
 	*config.Config
 }
+
+func New() *Filme {
+	return &Filme{
+		Config: config.New(),
+	}
+}
