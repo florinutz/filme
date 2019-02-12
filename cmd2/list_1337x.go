@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func buildListCmd(f *filme.Filme) *cobra.Command {
+func build1337xParseListPageCmd(f *filme.Filme) *cobra.Command {
 	var opts struct {
 		goIntoDetails bool
 		debugLevel    value.DebugLevelValue

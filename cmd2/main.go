@@ -27,7 +27,8 @@ func buildRootCommand() *cobra.Command {
 	cmd.PersistentFlags().BoolVar(&f.Debug, "debug", false, "Enable debug logging")
 
 	cmd.AddCommand(
-		buildListCmd(f),
+		build1337xParseListPageCmd(f),
+		build1337xParseDetailPageCmd(f),
 		buildCompletionCmd(f),
 		buildVersionCmd(f),
 	)
