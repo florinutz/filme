@@ -3,6 +3,7 @@ package mockloader
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -27,8 +28,8 @@ type Url struct {
 }
 
 // LoadFromFile reads all urls from data file
-func (td *mockLoader) LoadFromFile() (err error) {
-	jsonFile, err := os.Open(td.DataFile)
+func (l *mockLoader) LoadFromFile() (err error) {
+	jsonFile, err := os.Open(l.DataFile)
 	if err != nil {
 		return
 	}
@@ -39,7 +40,7 @@ func (td *mockLoader) LoadFromFile() (err error) {
 		return
 	}
 
-	err = json.Unmarshal(byteValue, &td.Urls)
+	err = json.Unmarshal(byteValue, &l.Urls)
 	if err != nil {
 		return err
 	}
@@ -48,7 +49,7 @@ func (td *mockLoader) LoadFromFile() (err error) {
 }
 
 // Fetch loads new data
-func (td *mockLoader) Fetch(wantedUrls []*url.URL, timeout time.Duration) error {
+func (l *mockLoader) Fetch(wantedUrls []*url.URL, timeout time.Duration) error {
 	c := make(chan Url, len(wantedUrls))
 
 	for _, u := range wantedUrls {
@@ -58,7 +59,7 @@ func (td *mockLoader) Fetch(wantedUrls []*url.URL, timeout time.Duration) error 
 	for i := 0; i < len(wantedUrls); i++ {
 		select {
 		case block := <-c:
-			td.Urls = append(td.Urls, &block)
+			l.Urls = append(l.Urls, &block)
 			fmt.Printf("* loaded %s\n", block.Url)
 		case <-time.After(timeout):
 			return fmt.Errorf("timeout after %s", timeout)
@@ -68,13 +69,13 @@ func (td *mockLoader) Fetch(wantedUrls []*url.URL, timeout time.Duration) error 
 	return nil
 }
 
-func (td *mockLoader) Save() error {
-	b, err := json.Marshal(td.Urls)
+func (l *mockLoader) Save() error {
+	b, err := json.Marshal(l.Urls)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(td.DataFile, b, 0644)
+	err = ioutil.WriteFile(l.DataFile, b, 0644)
 	if err != nil {
 		return err
 	}
@@ -114,4 +115,25 @@ func getSource(visitUrl string) ([]byte, error) {
 	}
 
 	return html, nil
+}
+
+func (l *mockLoader) GetUrlContent(u *url.URL) (string, error) {
+	if l.Urls == nil {
+		return "", errors.New("loader has no urls")
+	}
+
+	stringRepresentation := u.String()
+	for _, loaderUrl := range l.Urls {
+		if stringRepresentation == loaderUrl.Url {
+			b64 := loaderUrl.Content
+			decoded := make([]byte, base64.StdEncoding.DecodedLen(len(b64)))
+			_, err := base64.StdEncoding.Decode(decoded, b64)
+			if err != nil {
+				return "", errors.New("couldn't decode base64")
+			}
+			return string(decoded), nil
+		}
+	}
+
+	return "", fmt.Errorf("url '%s' not found", u.String())
 }

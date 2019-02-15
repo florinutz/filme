@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"time"
@@ -10,6 +11,7 @@ import (
 
 const dataFile = "data.json"
 
+// todo make this a separate package
 func main() {
 	loader := mockloader.NewMockLoader(dataFile)
 
@@ -28,11 +30,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	content, err := loader.GetUrlContent(url1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s", content)
 }
 
 /*
 func main() {
-	loader := mockloader.NewMockLoader("data.json")
+	loader := mockloader.NewMockLoader(dataFile)
 	err := loader.LoadFromFile()
 	if err != nil {
 		log.Fatal(err)
