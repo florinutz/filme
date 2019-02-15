@@ -12,66 +12,69 @@ import (
 	"time"
 )
 
-type block struct {
-	Url string `json:"url"`
-	B64 []byte `json:"content"`
+type mockLoader struct {
+	DataFile string
+	Urls     []*Url
 }
 
-type Data struct {
-	Detail                block `json:"detail"`
-	ListWithPagination    block `json:"list_pagination"`
-	ListWithoutPagination block `json:"list_nopagination"`
+func NewMockLoader(dataFile string) *mockLoader {
+	return &mockLoader{DataFile: dataFile}
 }
 
-// Read Data from data file
-func Read(dataFile string) (data *Data, err error) {
-	jsonFile, err := os.Open(dataFile)
+type Url struct {
+	Url     string `json:"url"`
+	Content []byte `json:"content"`
+}
+
+// LoadFromFile reads all urls from data file
+func (td *mockLoader) LoadFromFile() (err error) {
+	jsonFile, err := os.Open(td.DataFile)
 	if err != nil {
 		return
 	}
 	defer jsonFile.Close()
 
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-
-	err = json.Unmarshal(byteValue, &data)
+	byteValue, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
-		return nil, err
+		return
+	}
+
+	err = json.Unmarshal(byteValue, &td.Urls)
+	if err != nil {
+		return err
 	}
 
 	return
 }
 
-// Write Data to file
-func Write(dataFile string) error {
-	c1 := make(chan block, 1)
-	c2 := make(chan block, 1)
-	c3 := make(chan block, 1)
+// Fetch loads new data
+func (td *mockLoader) Fetch(wantedUrls []*url.URL, timeout time.Duration) error {
+	c := make(chan Url, len(wantedUrls))
 
-	go fetch("https://1337x.to/torrent/3570061/House-Party-1990-WEBRip-1080p-YTS-YIFY/", c1)
-	go fetch("https://1337x.to/search/romania/1/", c2)
-	go fetch("https://1337x.to/popular-movies", c3)
+	for _, u := range wantedUrls {
+		go fetch(*u, c)
+	}
 
-	data := &Data{}
-
-	for i := 0; i < 3; i++ {
+	for i := 0; i < len(wantedUrls); i++ {
 		select {
-		case data.Detail = <-c1:
-			fmt.Println("loaded detail page")
-		case data.ListWithPagination = <-c2:
-			fmt.Println("loaded list page with pagination")
-		case data.ListWithoutPagination = <-c3:
-			fmt.Println("loaded list page without pagination")
-		case <-time.After(10 * time.Second):
-			log.Fatal("timeout after 10 seconds")
+		case block := <-c:
+			td.Urls = append(td.Urls, &block)
+			fmt.Printf("* loaded %s\n", block.Url)
+		case <-time.After(timeout):
+			return fmt.Errorf("timeout after %s", timeout)
 		}
 	}
 
-	b, err := json.Marshal(data)
+	return nil
+}
+
+func (td *mockLoader) Save() error {
+	b, err := json.Marshal(td.Urls)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(dataFile, b, 0644)
+	err = ioutil.WriteFile(td.DataFile, b, 0644)
 	if err != nil {
 		return err
 	}
@@ -79,16 +82,17 @@ func Write(dataFile string) error {
 	return nil
 }
 
-func fetch(url string, blockChan chan<- block) {
-	html, err := getSource(url)
+func fetch(url url.URL, blockChan chan<- Url) {
+	urlStr := url.String()
+	html, err := getSource(urlStr)
 	if err != nil {
 		log.Fatal(err)
 	}
 	result := make([]byte, base64.StdEncoding.EncodedLen(len(html)))
 	base64.StdEncoding.Encode(result, html)
-	blockChan <- block{
-		Url: url,
-		B64: result,
+	blockChan <- Url{
+		Url:     urlStr,
+		Content: result,
 	}
 }
 
