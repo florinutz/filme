@@ -117,9 +117,9 @@ func getSource(visitUrl string) ([]byte, error) {
 	return html, nil
 }
 
-func (l *mockLoader) GetUrlContent(u *url.URL) (string, error) {
+func (l *mockLoader) GetUrlContent(u *url.URL) ([]byte, error) {
 	if l.Urls == nil {
-		return "", errors.New("loader has no urls")
+		return nil, errors.New("loader has no urls")
 	}
 
 	stringRepresentation := u.String()
@@ -129,11 +129,11 @@ func (l *mockLoader) GetUrlContent(u *url.URL) (string, error) {
 			decoded := make([]byte, base64.StdEncoding.DecodedLen(len(b64)))
 			_, err := base64.StdEncoding.Decode(decoded, b64)
 			if err != nil {
-				return "", errors.New("couldn't decode base64")
+				return nil, errors.New("couldn't decode base64")
 			}
-			return string(decoded), nil
+			return decoded, nil
 		}
 	}
 
-	return "", fmt.Errorf("url '%s' not found", u.String())
+	return nil, fmt.Errorf("url '%s' not found", u.String())
 }

@@ -98,7 +98,9 @@ func (dc *DetailsCollector) OnScraped(r *colly.Response) {
 }
 
 func getResponseDoc(r *colly.Response) (doc *goquery.Document, err error) {
-	return goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
+	document, err := goquery.NewDocumentFromReader(bytes.NewBuffer(r.Body))
+	document.Url = r.Request.URL
+	return document, err
 }
 
 func getDetailsPageTitle(doc *goquery.Document) (title string, err error) {

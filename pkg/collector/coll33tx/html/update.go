@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"time"
@@ -16,9 +15,10 @@ func main() {
 	loader := mockloader.NewMockLoader(dataFile)
 
 	url1, _ := url.Parse("https://1337x.to/torrent/3570061/House-Party-1990-WEBRip-1080p-YTS-YIFY/")
-	url2, _ := url.Parse("https://1337x.to/search/romania/1/")
+	url2, _ := url.Parse("https://1337x.to/search/romania/3/")
 	url3, _ := url.Parse("https://1337x.to/popular-movies")
 	urls := []*url.URL{url1, url2, url3}
+
 	timeout := 10 * time.Second
 
 	err := loader.Fetch(urls, timeout)
@@ -31,20 +31,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	content, err := loader.GetUrlContent(url1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%s", content)
+	// content, err := loader.GetUrlContent(url1)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Printf("%s", content)
 }
-
-/*
-func main() {
-	loader := mockloader.NewMockLoader(dataFile)
-	err := loader.LoadFromFile()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%q", loader.Urls)
-}
-*/

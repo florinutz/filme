@@ -1,40 +1,23 @@
 package coll33tx
 
 import (
-	"encoding/base64"
-	"io/ioutil"
-	"net/url"
 	"reflect"
 	"sort"
 	"testing"
 
-	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
 )
-
-func mockResponse(pageUrl, b64File string) *colly.Response {
-	src, err := ioutil.ReadFile(b64File)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	data, err := base64.StdEncoding.DecodeString(string(src))
-	if err != nil {
-		log.Fatal(err)
-	}
-	u, _ := url.Parse(pageUrl)
-
-	return &colly.Response{
-		Body:    data,
-		Request: &colly.Request{URL: u},
-	}
-}
 
 func TestTorrent_fromResponse(t *testing.T) {
 	var torrent Torrent
 	const pageLink = "https://1337x.to/torrent/3569899/House-Party-1990-WEBRip-720p-YTS-YIFY/"
 
-	torrent.fromResponse(mockResponse(pageLink, "html/detail"), log.NewEntry(log.New()))
+	r, err := mockResponse(pageLink)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	torrent.fromResponse(r, log.NewEntry(log.New()))
 
 	t.Run("Title", func(t *testing.T) {
 		expected := "House Party (1990) [WEBRip] [1080p] [YTS] [YIFY]"
