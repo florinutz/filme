@@ -12,9 +12,9 @@ matrix:
     - go: "1.11.x"
       env:
         - GO111MODULE=on
+    - go: tip
 
-install:
-  - go mod download
+install: true
 
 script:
   - if [ -n "$(go fmt ./...)" ]; then exit 1; fi
