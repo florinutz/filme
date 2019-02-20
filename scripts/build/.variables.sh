@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -eu
 
-[[ -z "$FILME_BUILD_VERBOSE" ]] && set -x
-
 VERSION=${VERSION:-"unknown"}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
 BUILDTIME=${BUILDTIME:-$(date --utc --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')}
