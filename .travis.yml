@@ -17,7 +17,5 @@ script:
   - go vet -v ./...
   - go build
 
-install: true
-
 after_success:
   - bash <(curl -s https://codecov.io/bash)
