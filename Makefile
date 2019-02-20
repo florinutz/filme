@@ -7,6 +7,10 @@ all: binary
 binary: ## build binary for Linux
 	./scripts/build/binary.sh
 
+.PHONY: run
+run: binary
+	./bin $(FILME_ARGS)
+
 .PHONY: lint
 lint: ## run all the lint tools
 	gometalinter ./...
