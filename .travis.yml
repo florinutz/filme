@@ -1,0 +1,24 @@
+language: go
+
+matrix:
+  include:
+    - go: "1.10.x"
+      script:
+        - go test -race -v -coverprofile=coverage.txt -covermode=atomic github.com/florinutz/filme/pkg/collector/coll33tx
+    - go: "1.11.x"
+      script:
+        - go test -race -v -coverprofile=coverage.txt -covermode=atomic -mod=vendor github.com/florinutz/filme/pkg/collector/coll33tx
+
+env:
+  - GO111MODULE=on
+
+script:
+  - OUT="$(gofmt -l -d ./)"; test -z "$OUT" || (echo "$OUT" && return 1)
+  - OUT="$(golint ./...)"; test -z "$OUT" || (echo "$OUT" && return 1)
+  - go vet -v ./...
+  - go build
+
+install: true
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
