@@ -10,9 +10,8 @@ import (
 
 func TestTorrent_fromResponse(t *testing.T) {
 	var torrent Torrent
-	const pageLink = "https://1337x.to/torrent/3569899/House-Party-1990-WEBRip-720p-YTS-YIFY/"
 
-	r, err := mockResponse(pageLink)
+	r, err := mockResponse(TestPageDetail)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +72,7 @@ func TestTorrent_fromResponse(t *testing.T) {
 		if torrent.FoundOn == nil {
 			t.Error("FoundOn is nil")
 		}
-		expected := pageLink
+		expected := TestPageDetail
 		got := torrent.FoundOn.String()
 		if expected != got {
 			t.Errorf("expected FoundOn '%s', got '%s'", expected, got)
@@ -150,7 +149,7 @@ func TestTorrent_fromResponse(t *testing.T) {
 	})
 
 	t.Run("Downloads", func(t *testing.T) {
-		expected := 240
+		expected := 341
 		got := torrent.Downloads
 		if expected != got {
 			t.Errorf("expected '%d' Downloads, got '%d'", expected, got)
@@ -158,7 +157,7 @@ func TestTorrent_fromResponse(t *testing.T) {
 	})
 
 	t.Run("LastChecked", func(t *testing.T) {
-		expected := "24 minutes ago"
+		expected := "1 week ago"
 		got := torrent.LastChecked
 		if expected != got {
 			t.Errorf("expected LastChecked '%s', got '%s'", expected, got)
@@ -166,7 +165,7 @@ func TestTorrent_fromResponse(t *testing.T) {
 	})
 
 	t.Run("DateUploaded", func(t *testing.T) {
-		expected := "1 day ago"
+		expected := "2 weeks ago"
 		got := torrent.DateUploaded
 		if expected != got {
 			t.Errorf("expected DateUploaded '%s', got '%s'", expected, got)
@@ -174,7 +173,7 @@ func TestTorrent_fromResponse(t *testing.T) {
 	})
 
 	t.Run("Seeders", func(t *testing.T) {
-		expected := 229
+		expected := 158
 		got := torrent.Seeders
 		if expected != got {
 			t.Errorf("expected '%d' Seeders, got '%d'", expected, got)
@@ -182,7 +181,7 @@ func TestTorrent_fromResponse(t *testing.T) {
 	})
 
 	t.Run("Leechers", func(t *testing.T) {
-		expected := 45
+		expected := 38
 		got := torrent.Leechers
 		if expected != got {
 			t.Errorf("expected '%d' Leechers, got '%d'", expected, got)
