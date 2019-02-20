@@ -9,17 +9,18 @@ matrix:
         - go get -u -v $(go list -f '{{join .Imports "\n"}}{{"\n"}}{{join .TestImports "\n"}}' ./... | sort | uniq | grep -v filme)
     - go: "1.11.x"
       install:
-        - go get .
+        - go mod download
       script:
         - go test -race -v -coverprofile=coverage.txt -covermode=atomic -mod=vendor ./...
       env:
         - GO111MODULE=on
 
 script:
-  - OUT="$(gofmt -l -d ./)"; test -z "$OUT" || (echo "$OUT" && return 1)
-  - OUT="$(golint ./...)"; test -z "$OUT" || (echo "$OUT" && return 1)
-  - go vet -v ./...
+  - if [ -n "$(go fmt ./...)" ]; then exit 1; fi
   - go build
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+branches:
+  only: [master]
