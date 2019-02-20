@@ -5,7 +5,11 @@ matrix:
     - go: "1.10.x"
       script:
         - go test -race -v -coverprofile=coverage.txt -covermode=atomic ./...
+      install:
+        - go get -u -v $(go list -f '{{join .Imports "\n"}}{{"\n"}}{{join .TestImports "\n"}}' ./... | sort | uniq | grep -v filme)
     - go: "1.11.x"
+      install:
+        - go get .
       script:
         - go test -race -v -coverprofile=coverage.txt -covermode=atomic -mod=vendor ./...
       env:
