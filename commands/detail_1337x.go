@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func build1337xParseDetailPageCmd(f *filme.Filme) *cobra.Command {
+func Build1337xParseDetailPageCmd(f *filme.Filme) *cobra.Command {
 	var opts struct {
 		url        string
 		justMagnet bool

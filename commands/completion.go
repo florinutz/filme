@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"github.com/florinutz/filme/pkg/config"
@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func buildCompletionCmd(f *filme.Filme) *cobra.Command {
+func BuildCompletionCmd(f *filme.Filme) *cobra.Command {
 	return &cobra.Command{
 		Use:   "completion <bash|zsh>",
 		Short: "Generates shell completion scripts",

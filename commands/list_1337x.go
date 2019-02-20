@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func build1337xParseListPageCmd(f *filme.Filme) *cobra.Command {
+func Build1337xParseListPageCmd(f *filme.Filme) *cobra.Command {
 	var opts struct {
 		goIntoDetails bool
 		debugLevel    value.DebugLevelValue
