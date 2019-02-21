@@ -10,15 +10,17 @@ git:
 matrix:
   include:
     - go: "1.11.x"
-      env:
-        - GO111MODULE=on
     - go: tip
 
-install: true
+env:
+  - GO111MODULE=on
+
+install:
+  - go mod download
 
 script:
   - if [ -n "$(go fmt ./...)" ]; then exit 1; fi
-  - env GO111MODULE=on go test -race -v -coverprofile=coverage.txt -covermode=atomic -mod=vendor ./...
+  - env GO111MODULE=on go test -race -v -coverprofile=coverage.txt -covermode=atomic ./...
   - go build
 
 after_success:
