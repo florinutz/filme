@@ -20,7 +20,7 @@ install:
 
 script:
   - if [ -n "$(go fmt ./...)" ]; then exit 1; fi
-  - env GO111MODULE=on go test -race -v -coverprofile=coverage.txt -covermode=atomic ./...
+  - go test -race -v -coverprofile=coverage.txt -covermode=atomic ./...
   - go build
 
 after_success:
