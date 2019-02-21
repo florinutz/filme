@@ -29,7 +29,7 @@ type Item struct {
 	Name    string
 	Href    *url.URL
 	Size    string
-	Seeds   int
+	Seeders int
 	Leeches int
 }
 
@@ -122,7 +122,7 @@ func (doc *document) trToItem(i int, tr *goquery.Selection) (item *Item, errs []
 
 	td = tr.Find("td.seeds")
 	if td.Nodes != nil {
-		if item.Seeds, err = strconv.Atoi(td.Text()); err != nil {
+		if item.Seeders, err = strconv.Atoi(td.Text()); err != nil {
 			errs = append(errs, fmt.Errorf("can't convert seeders to int for item %d (%s)", i, item.Name))
 		}
 	}

@@ -1,6 +1,8 @@
 package filme
 
 import (
+	"fmt"
+
 	"github.com/florinutz/filme/pkg/collector/coll33tx/list"
 	"github.com/florinutz/filme/pkg/config/value"
 
@@ -10,13 +12,21 @@ import (
 
 func (f *Filme) OnListPageCrawled(lines []*list.Line, pagination *list.Pagination, r *colly.Response, log *logrus.Entry) {
 	if pagination != nil {
-		f.Log.Printf("current page: %d\n", pagination.CurrentPage)
-		f.Log.Printf("pages count: %d\n", pagination.PagesCount)
+		fmt.Fprintf(f.Out, "current page: %d\n", pagination.CurrentPage)
+		fmt.Fprintf(f.Out, "pages count: %d\n", pagination.PagesCount)
+	}
+	if len(lines) > 0 {
+		fmt.Fprintln(f.Out, "")
 	}
 	for _, line := range lines {
-		f.Log.WithField("item", line.Item).Infoln()
+		fmt.Fprintf(f.Out, "%s\n\t%s\n\tsize: %s, seeders: %d, leeches: %d\n\n",
+			line.Item.Name,
+			line.Item.Href,
+			line.Item.Size,
+			line.Item.Seeders,
+			line.Item.Leeches)
 		for _, err := range line.Errs {
-			f.Log.Warnf("line error: %s", err)
+			fmt.Fprintf(f.Err, "line error: %s", err)
 		}
 	}
 }
