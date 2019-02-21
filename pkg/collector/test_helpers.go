@@ -4,7 +4,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/florinutz/filme/pkg/collector/coll33tx/html/mockloader"
+	"github.com/florinutz/filme/pkg/collector/url_mock"
+
 	"github.com/gocolly/colly"
 )
 
@@ -14,14 +15,12 @@ func MockResponse(pageUrl string, dataFile string) (*colly.Response, error) {
 		return nil, err
 	}
 
-	loader := mockloader.NewMockLoader(dataFile)
-
-	err = loader.LoadFromFile()
+	err = url_mock.Load(dataFile)
 	if err != nil {
 		return nil, err
 	}
 
-	content, err := loader.GetUrlContent(u)
+	content, err := url_mock.GetUrlContent(u.String())
 	if err != nil {
 		return nil, err
 	}
