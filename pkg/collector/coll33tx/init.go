@@ -5,22 +5,25 @@ import (
 	"net/http"
 	"time"
 
-	debug "github.com/florinutz/filme/pkg/collector"
+	"github.com/florinutz/filme/pkg/collector"
 
 	"github.com/gocolly/colly"
 	collyExtensions "github.com/gocolly/colly/extensions"
 	log "github.com/sirupsen/logrus"
 )
 
-func initCollector(logEntry *log.Entry, options ...func(collector *colly.Collector)) *colly.Collector {
-	c := colly.NewCollector(append(options,
+// DomainConfig is a colly extension that configures both 1337x collectors
+func DomainConfig(c *colly.Collector, logEntry *log.Entry) {
+	for _, f := range []func(collector *colly.Collector){
 		colly.MaxDepth(1),
 		colly.Async(true),
 		colly.CacheDir(".cache"),
 		colly.UserAgent("filme finder"),
 		colly.AllowedDomains("1337x.to"),
-		colly.Debugger(&debug.LogrusDebugger{Logger: logEntry.Logger}),
-	)...)
+		colly.Debugger(&collector.LogrusDebugger{Logger: logEntry.Logger}),
+	} {
+		f(c)
+	}
 
 	collyExtensions.RandomUserAgent(c)
 	collyExtensions.Referrer(c)
@@ -46,6 +49,4 @@ func initCollector(logEntry *log.Entry, options ...func(collector *colly.Collect
 	}); err != nil {
 		logEntry.WithError(err).Fatal("failed while setting collector limit")
 	}
-
-	return c
 }

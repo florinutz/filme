@@ -1,4 +1,4 @@
-package debug
+package collector
 
 import (
 	"sync/atomic"

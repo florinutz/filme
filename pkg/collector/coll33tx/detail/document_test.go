@@ -1,22 +1,31 @@
-package coll33tx
+package detail
 
 import (
 	"reflect"
 	"sort"
 	"testing"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/florinutz/filme/pkg/collector"
 )
 
-func TestTorrent_fromResponse(t *testing.T) {
-	var torrent Torrent
+const (
+	TestPageDetail = "https://1337x.to/torrent/3570061/House-Party-1990-WEBRip-1080p-YTS-YIFY/"
+	dataFile       = "../html/data.json"
+)
 
-	r, err := mockResponse(TestPageDetail)
+func TestDetailPage_document_data(t *testing.T) {
+
+	r, err := collector.MockResponse(TestPageDetail, dataFile)
 	if err != nil {
-		t.Fatal(err)
+		collector.FatalIfErr(err, t)
 	}
 
-	torrent.fromResponse(r, log.NewEntry(log.New()))
+	doc, err := NewDocument(r, nil)
+	if err != nil {
+		collector.FatalIfErr(err, t)
+	}
+
+	torrent := doc.GetData()
 
 	t.Run("Title", func(t *testing.T) {
 		expected := "House Party (1990) [WEBRip] [1080p] [YTS] [YIFY]"

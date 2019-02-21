@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/eefret/gomdb"
+	"github.com/florinutz/filme/pkg/collector/coll33tx/detail"
 
-	"github.com/florinutz/filme/pkg/collector/coll33tx"
+	"github.com/eefret/gomdb"
 )
 
 func (f *Filme) VisitDetailPage(
@@ -19,7 +19,7 @@ func (f *Filme) VisitDetailPage(
 	log := f.Log.WithField("url", pageUrl)
 
 	func() {
-		OnTorrentFound := func(torrent coll33tx.Torrent) {
+		var OnTorrentFound detail.OnTorrentFound = func(torrent *detail.Torrent) {
 			f.Log.WithField("torrent", torrent).Debug("torrent found on detail page")
 
 			if justMagnet {
@@ -63,12 +63,12 @@ leechers: %d`,
 
 		}
 
-		detail := coll33tx.NewDetailsPageCollector(OnTorrentFound, log)
-		if err := detail.Visit(pageUrl); err != nil {
+		col := detail.NewCollector(OnTorrentFound, log)
+		if err := col.Visit(pageUrl); err != nil {
 			log.WithError(err).Fatal("visit error")
 		}
 
-		detail.Wait()
+		col.Wait()
 	}()
 
 	return nil
