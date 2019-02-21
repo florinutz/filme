@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/florinutz/filme.svg?branch=master)](https://travis-ci.org/florinutz/filme)
+[![codecov](https://codecov.io/gh/florinutz/filme/branch/master/graph/badge.svg)](https://codecov.io/gh/florinutz/filme)
 
 `filme list`
 
