@@ -1,22 +1,17 @@
 language: go
 
+go:
+  - 1.11.x
+  - master
+
 notifications:
   email: false
 
-# Only clone the most recent commit
 git:
   depth: 1
 
-matrix:
-  include:
-    - go: "1.11.x"
-    - go: tip
-
 env:
   - GO111MODULE=on
-
-install:
-  - go mod download
 
 script:
   - if [ -n "$(go fmt ./...)" ]; then exit 1; fi
