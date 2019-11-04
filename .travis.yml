@@ -1,0 +1,30 @@
+language: go
+go:
+  - "1.13.x"
+notifications:
+  email: false
+git:
+  depth: 1
+addons:
+  apt:
+    packages:
+    - snapd
+env: GO111MODULE=on PATH=/snap/bin:$PATH
+install:
+- sudo snap install --classic snapcraft
+- sudo snap install --classic goreleaser
+script:
+- if [ -n "$(go fmt ./...)" ]; then exit 1; fi
+- make all
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+- test -n "$TRAVIS_TAG" && snapcraft login --with snap.login
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: goreleaser --rm-dist
+  on:
+    tags: true
+before_install:
+- openssl aes-256-cbc -K $encrypted_d418e249407f_key -iv $encrypted_d418e249407f_iv
+  -in snap.login.enc -out snap.login -d

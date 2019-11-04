@@ -1,0 +1,42 @@
+before:
+  hooks:
+    - go mod tidy
+builds:
+  -
+    id: filme
+    env:
+      - CGO_ENABLED=0
+    ldflags: -s -w -X github.com/florinutz/filme/pkg.Version={{.Version}} -X github.com/florinutz/filme/pkg.Commit={{.ShortCommit}} -X github.com/florinutz/filme/pkg.BuildTime={{time "01/02/2006"}}
+archives:
+- replacements:
+    darwin: Darwin
+    linux: Linux
+    windows: Windows
+    386: i386
+    amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+dist: build
+
+snapcrafts:
+  -
+    replacements:
+      amd64: 64bit
+      386: 32bit
+      darwin: mac
+    name: filme
+    publish: true
+    summary: Movie torrenting helper utility
+    description: Filme parses torrent and film catalogs (1337x, google, imdb) and returns magnet links matched with film info
+    grade: stable
+    confinement: strict
+    license: MIT
+    base: core18

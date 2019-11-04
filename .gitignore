@@ -1,1 +1,8 @@
 .idea
+.cache
+vendor/*
+build/*
+bin
+coverage.txt
+.vscode
+snap.login
