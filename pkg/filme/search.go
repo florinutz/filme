@@ -4,26 +4,32 @@ import (
 	"fmt"
 
 	"github.com/florinutz/filme/pkg/collector/coll33tx/list"
-	"github.com/florinutz/filme/pkg/config"
 	"github.com/florinutz/filme/pkg/config/value"
+	"github.com/florinutz/filme/pkg/filme/l33tx_movies"
 
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
 )
 
-func (f *Filme) Search(
-	args []string,
-	requiredItems int,
-	goIntoDetails bool,
-	debugLevel value.DebugLevelValue,
-) error {
-	log := f.Log.WithField("search", args)
+func (f *Filme) Search(what string, requiredItems int, goIntoDetails bool, category value.LeetxListSearchCategory,
+	movieEncoding value.LeetxListEncoding, sort value.LeetxListSortValue, debugLevel value.DebugLevelValue) error {
+	log := f.Log.WithFields(map[string]interface{}{
+		"search":   what,
+		"category": category,
+		"encoding": movieEncoding,
+		"sort":     sort,
+	})
 
 	col := list.NewCollector(f.onSearchPageCrawled, requiredItems, log)
-	initialUrl := config.Get1337xListUrlFromArgs(args)
 
-	err := col.Visit(initialUrl)
+	startUrl, err := l33tx_movies.GetListUrl(what, sort, &category, &movieEncoding)
 	if err != nil {
+		return fmt.Errorf("can't get start url: %w", err)
+	}
+
+	log.WithField("searchStartUrl", startUrl).Debug("starting search")
+
+	if err = col.Visit(startUrl.String()); err != nil {
 		log.WithError(err).Warn("initial search visit error")
 		return err
 	}

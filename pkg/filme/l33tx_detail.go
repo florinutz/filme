@@ -6,9 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/florinutz/filme/pkg/collector/coll33tx/detail"
-
 	"github.com/eefret/gomdb"
+	"github.com/florinutz/filme/pkg/collector/coll33tx/detail"
 )
 
 func (f *Filme) Visit1337xDetailPage(

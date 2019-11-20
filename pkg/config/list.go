@@ -7,21 +7,6 @@ import (
 	"strings"
 )
 
-func Get1337xListUrlFromArgs(args []string) (listUrl string) {
-	if len(args) == 0 {
-		return "https://1337x.to/popular-movies"
-	}
-
-	if strings.Contains(args[0], "1337x.to/") {
-		return strings.Join(args, " ")
-	}
-
-	return fmt.Sprintf(
-		"https://1337x.to/srch?%s",
-		url.Values{"search": {strings.Join(args, " ")}}.Encode(),
-	)
-}
-
 // https://www.google.com/search?q=imdb|rottentomatoes|metacritic|netflix|wikipedia+love+death+robots&num=20&lr=lang_en
 func GetGoogleUrlFromArgs(args []string, numberOfResults int, language string) (string, error) {
 	tplUrl := fmt.Sprintf("https://www.google.com/search?num=%d&lr=%s", numberOfResults, language) +
