@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/florinutz/filme/pkg/config"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/florinutz/filme/pkg/config/value"
@@ -25,7 +23,7 @@ func Build1337xListPageCmd(f *filme.Filme) *cobra.Command {
 		Short: "Parses 1337x listings",
 
 		PreRun: func(cmd *cobra.Command, args []string) {
-			opts.url = config.Get1337xListUrlFromArgs(args)
+			opts.url = "https://1337x.to/popular-movies"
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,6 +33,7 @@ func Build1337xListPageCmd(f *filme.Filme) *cobra.Command {
 
 	cmd.Flags().BoolVarP(&opts.goIntoDetails, "crawl-details", "d", false,
 		"follows every link in the list and fetches detail pages data")
+
 	defaultDebugLevel := logrus.DebugLevel
 	_ = opts.debugLevel.Set(defaultDebugLevel.String())
 	cmd.Flags().Var(&opts.debugLevel, "debug-level", fmt.Sprintf("possible debug levels: %s",

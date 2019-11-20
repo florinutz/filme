@@ -16,7 +16,7 @@ func (v *DebugLevelValue) Set(lvl string) (err error) {
 }
 
 func (*DebugLevelValue) Type() string {
-	return "debugLevel"
+	return "level"
 }
 
 func GetAllLevels() (result []string) {

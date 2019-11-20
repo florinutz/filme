@@ -5,7 +5,6 @@ import (
 
 	"github.com/florinutz/filme/pkg/collector/coll33tx/list"
 	"github.com/florinutz/filme/pkg/config/value"
-
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
 )
