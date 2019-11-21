@@ -8,6 +8,7 @@ import (
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/encoding"
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/search_category"
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
+	filt "github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/url"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
@@ -74,7 +75,12 @@ func (f *Filme) onSearchPageCrawled(
 		fmt.Fprintln(f.Out, "")
 	}
 
+	filter := filt.Filter{}
+
 	for i, line := range lines {
+		if !filter.IsValid(*line.Item) {
+			continue
+		}
 		if i+1+currentPage*list.LeetxItemsPerPage > wantedItems {
 			log.WithField("max", wantedItems).Debug("max limit of items to display reached, stopping")
 			break
