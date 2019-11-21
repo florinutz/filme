@@ -43,17 +43,21 @@ type Line struct {
 }
 
 // GetLines returns list items along with their errors / missing stuff
-func (doc *document) GetLines() (lines []*Line) {
-	trs := doc.Find(".page-content .table-striped tbody tr")
+func (doc *document) GetLines() ([]*Line, error) {
+	selector := ".page-content .table-striped tbody tr"
+	trs := doc.Find(selector)
 	if trs.Nodes == nil {
-		return
+		return nil, fmt.Errorf("selector '%s' not found in document at url %s", selector, doc.Url.String())
 	}
+
+	var lines []*Line
 	trs.Each(func(i int, tr *goquery.Selection) {
 		line := new(Line)
 		line.Item, line.Errs = doc.trToItem(i, tr)
 		lines = append(lines, line)
 	})
-	return
+
+	return lines, nil
 }
 
 func (doc *document) trToItem(i int, tr *goquery.Selection) (item *Item, errs []error) {

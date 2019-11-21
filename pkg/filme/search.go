@@ -11,10 +11,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (f *Filme) Search(what string, requiredItems int, goIntoDetails bool, category value.LeetxListSearchCategory,
-	movieEncoding value.LeetxListEncoding, sort value.LeetxListSortValue, debugLevel value.DebugLevelValue) error {
+func (f *Filme) Search(
+	searchStr string,
+	requiredItems int,
+	goIntoDetails bool,
+	category value.LeetxListSearchCategory,
+	movieEncoding value.LeetxListEncoding,
+	sort value.LeetxListSortValue,
+	debugLevel value.DebugLevelValue) error {
+
+	startUrl, err := l33tx_movies.GetListUrl(searchStr, sort, &category, &movieEncoding)
+	if err != nil {
+		return fmt.Errorf("can't get start url: %w", err)
+	}
 	log := f.Log.WithFields(map[string]interface{}{
-		"search":   what,
+		"search":   searchStr,
 		"category": category,
 		"encoding": movieEncoding,
 		"sort":     sort,
@@ -22,12 +33,11 @@ func (f *Filme) Search(what string, requiredItems int, goIntoDetails bool, categ
 
 	col := list.NewCollector(f.onSearchPageCrawled, requiredItems, *log)
 
-	startUrl, err := l33tx_movies.GetListUrl(what, sort, &category, &movieEncoding)
-	if err != nil {
-		return fmt.Errorf("can't get start url: %w", err)
+	if startUrl == nil {
+		log.Fatal("empty url retrieved for search, please investigate")
 	}
 
-	log.WithField("searchStartUrl", startUrl).Debug("starting search")
+	log.WithField("url", startUrl).Debug("starting search")
 
 	if err = col.Visit(startUrl.String()); err != nil {
 		log.WithError(err).Warn("initial search visit error")

@@ -9,6 +9,7 @@ import (
 
 func TestSearchListUrl(t *testing.T) {
 	var (
+		searchCategoryAll = value.SearchCategoryAll
 		searchCategoryTV  = value.SearchCategoryTV
 		searchCategoryXXX = value.SearchCategoryXXX
 		encodingUHD       = value.EncodingUHD
@@ -46,6 +47,28 @@ func TestSearchListUrl(t *testing.T) {
 				nil,
 			},
 			"https://1337x.to/sort-category-search/game%20of%20thrones%20s04e03/XXX/size/asc/1/",
+			false,
+		},
+		{
+			"ALL with category",
+			args{
+				"game of thrones s04e03",
+				value.LeetxListSortValue{Criteria: value.SortCriteriaTime, Order: value.SortOrderDesc},
+				&searchCategoryAll,
+				nil,
+			},
+			"https://1337x.to/sort-search/game%20of%20thrones%20s04e03/time/desc/1/",
+			false,
+		},
+		{
+			"ALL with nil category",
+			args{
+				"game of thrones s04e03",
+				value.LeetxListSortValue{Criteria: value.SortCriteriaTime, Order: value.SortOrderDesc},
+				nil,
+				nil,
+			},
+			"https://1337x.to/sort-search/game%20of%20thrones%20s04e03/time/desc/1/",
 			false,
 		},
 		{

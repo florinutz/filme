@@ -52,7 +52,11 @@ func NewCollector(
 			return
 		}
 
-		lines := doc.GetLines()
+		lines, err := doc.GetLines()
+		if err != nil {
+			col.Log.WithError(err).Error("list lines parsing error")
+			return
+		}
 
 		pagination := doc.GetPagination()
 		col.OnPageCrawled(lines, pagination, resp, col.Log)
