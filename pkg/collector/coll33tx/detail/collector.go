@@ -16,10 +16,10 @@ type Collector struct {
 	*colly.Collector
 	onTorrentFound OnTorrentFound
 	Torrent        Torrent // this will be filled in the events
-	Log            *log.Entry
+	Log            log.Entry
 }
 
-func NewCollector(onTorrentFound OnTorrentFound, log *log.Entry, options ...func(*colly.Collector)) *Collector {
+func NewCollector(onTorrentFound OnTorrentFound, log log.Entry, options ...func(*colly.Collector)) *Collector {
 	c := colly.NewCollector(options...)
 	coll33tx.DomainConfig(c, log)
 

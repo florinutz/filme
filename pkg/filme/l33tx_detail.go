@@ -62,7 +62,7 @@ leechers: %d`,
 
 		}
 
-		col := detail.NewCollector(OnTorrentFound, log)
+		col := detail.NewCollector(OnTorrentFound, *log)
 		if err := col.Visit(pageUrl); err != nil {
 			log.WithError(err).Fatal("visit error")
 		}

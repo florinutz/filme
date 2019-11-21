@@ -27,22 +27,33 @@ func GetListUrl(
 		return getEncodingUrl(*movieEncoding, sort), nil
 	}
 
-	if category == nil {
-		return nil, fmt.Errorf("you need a category here")
-	}
-
-	return getSearchUrl(search, *category, sort), nil
+	return getSearchUrl(search, category, sort), nil
 }
 
-func getSearchUrl(search string, category value.LeetxListSearchCategory, sort value.LeetxListSortValue) *url.URL {
+func getSearchUrl(search string, category *value.LeetxListSearchCategory, sort value.LeetxListSortValue) *url.URL {
 	const tpl = "https://1337x.to/sort-category-search/game%20of%20thrones%20s04e03/TV/time/desc/1/"
 	u, _ := url.Parse(tpl)
 	p := strings.Split(u.Path, "/")
 
 	p[2] = search
-	p[3] = category.TranslateToUrlParam()
-	p[4] = sort.Criteria.String()
-	p[5] = sort.Order.String()
+
+	var (
+		noCategory           = category == nil || category.TranslateToUrlParam() == ""
+		indexForSortCriteria = 4
+	)
+
+	if noCategory {
+		// change action
+		p[1] = "sort-search"
+		// remove category from url (index 3)
+		p = append(p[:3], p[4:]...)
+		indexForSortCriteria--
+	} else {
+		p[3] = category.TranslateToUrlParam()
+	}
+
+	p[indexForSortCriteria] = sort.Criteria.String()
+	p[indexForSortCriteria+1] = sort.Order.String()
 
 	u.Path = strings.Join(p, "/")
 

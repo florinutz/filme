@@ -26,10 +26,10 @@ var imdbRe = regexp.MustCompile(`(?m)https?://(www\.)?imdb.com/title/tt(\d)+`)
 
 type document struct {
 	*goquery.Document
-	log *log.Entry
+	log log.Entry
 }
 
-func NewDocument(r *colly.Response, log *log.Entry) (*document, error) {
+func NewDocument(r *colly.Response, log log.Entry) (*document, error) {
 	d, err := collector.GetResponseDocument(r)
 	if err != nil {
 		return nil, err
@@ -207,11 +207,11 @@ func (doc *document) GetData() *Torrent {
 
 	var err error
 
-	if t.Title, err = doc.getDetailsPageTitle(); err != nil && doc.log != nil {
+	if t.Title, err = doc.getDetailsPageTitle(); err != nil {
 		log.WithError(err).Debug("missing title element")
 	}
 
-	if t.Magnet, err = doc.getDetailsPageMagnet(); err != nil && doc.log != nil {
+	if t.Magnet, err = doc.getDetailsPageMagnet(); err != nil {
 		log.WithError(err).Debug("missing magnet")
 	}
 
@@ -226,26 +226,26 @@ func (doc *document) GetData() *Torrent {
 		t.DateUploaded = box.DateUploaded
 		t.Seeders = box.Seeders
 		t.Leechers = box.Leechers
-	} else if doc.log != nil {
+	} else {
 		log.WithError(err).Warn()
 	}
 
-	if t.Image, err = doc.getDetailsPageImage(); err != nil && doc.log != nil {
+	if t.Image, err = doc.getDetailsPageImage(); err != nil {
 		log.WithError(err).Debug()
 	}
 
 	film, err := doc.getDetailsPageFilm()
-	if err != nil && doc.log != nil {
+	if err != nil {
 		log.WithError(err).Debug()
 	}
 	t.FilmCleanTitle = film.title
 	t.FilmLink = film.url
 
-	if t.Genres, err = doc.getDetailsPageFilmGenres(); err != nil && doc.log != nil {
+	if t.Genres, err = doc.getDetailsPageFilmGenres(); err != nil {
 		log.WithError(err).Debug()
 	}
 
-	if t.FilmDescription, err = doc.getDetailsPageFilmDescription(); err != nil && doc.log != nil {
+	if t.FilmDescription, err = doc.getDetailsPageFilmDescription(); err != nil {
 		log.WithError(err).Debug()
 	}
 

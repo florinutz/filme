@@ -7,7 +7,7 @@ import (
 )
 
 // OnFound is the callback func type for when items were found
-type OnFound func(items map[int]BaseItem, err error, onlyFilmRelatedItems bool, r *colly.Response, log *log.Entry)
+type OnFound func(items map[int]BaseItem, err error, onlyFilmRelatedItems bool, r *colly.Response, log log.Entry)
 
 // Collector is a wrapper around the colly collector + page data
 type Collector struct {
@@ -15,10 +15,10 @@ type Collector struct {
 	onFound              OnFound
 	Items                map[int]ItemDefault
 	onlyFilmRelatedItems bool
-	Log                  *log.Entry
+	Log                  log.Entry
 }
 
-func NewCollector(onFound OnFound, onlyFilmRelatedItems bool, log *log.Entry,
+func NewCollector(onFound OnFound, onlyFilmRelatedItems bool, log log.Entry,
 	options ...func(*colly.Collector)) *Collector {
 	c := colly.NewCollector(options...)
 	google.DomainConfig(c, log)

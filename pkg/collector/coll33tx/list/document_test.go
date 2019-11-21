@@ -49,7 +49,10 @@ func Test_ListPage(t *testing.T) {
 	})
 
 	t.Run("items", func(t *testing.T) {
-		lines := docNoPagination.GetLines()
+		lines, err := docNoPagination.GetLines()
+		if err != nil {
+			t.Errorf("lines fetching error: %s", err.Error())
+		}
 		if lines == nil {
 			t.Error("no lines found in list")
 		}
