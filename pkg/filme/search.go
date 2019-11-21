@@ -5,8 +5,7 @@ import (
 
 	"github.com/florinutz/filme/pkg/collector/coll33tx/list"
 	"github.com/florinutz/filme/pkg/config/value"
-	"github.com/florinutz/filme/pkg/filme/l33tx_movies"
-
+	"github.com/florinutz/filme/pkg/filme/l33tx/list/url"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
 )
@@ -20,7 +19,7 @@ func (f *Filme) Search(
 	sort value.LeetxListSortValue,
 	debugLevel value.DebugLevelValue) error {
 
-	startUrl, err := l33tx_movies.GetListUrl(searchStr, sort, &category, &movieEncoding)
+	startUrl, err := url.GetListUrl(searchStr, sort, &category, &movieEncoding)
 	if err != nil {
 		return fmt.Errorf("can't get start url: %w", err)
 	}

@@ -1,4 +1,4 @@
-package l33tx_movies
+package url
 
 import (
 	"fmt"
