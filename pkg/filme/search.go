@@ -37,7 +37,7 @@ func (f *Filme) Search(
 		log.Fatal("empty url retrieved for search, please investigate")
 	}
 
-	log.WithField("url", startUrl).Debug("starting search")
+	log.WithField("url", startUrl).Info("starting search")
 
 	if err = col.Visit(startUrl.String()); err != nil {
 		log.WithError(err).Warn("initial search visit error")
@@ -49,15 +49,34 @@ func (f *Filme) Search(
 	return nil
 }
 
-func (f *Filme) onSearchPageCrawled(lines []*list.Line, pagination *list.Pagination, r *colly.Response, log logrus.Entry) {
+func (f *Filme) onSearchPageCrawled(
+	lines []*list.Line,
+	pagination *list.Pagination,
+	wantedItems int,
+	r *colly.Response,
+	log logrus.Entry,
+) {
+	var currentPage int
+
 	if pagination != nil {
-		fmt.Fprintf(f.Out, "current page: %d\n", pagination.Current)
-		fmt.Fprintf(f.Out, "pages count: %d\n", pagination.PagesCount)
+		log.WithFields(map[string]interface{}{
+			"pagination_current": pagination.Current,
+			"pagination_count":   pagination.PagesCount,
+		}).Debug("pagination found")
+		currentPage = pagination.Current
+	} else {
+		currentPage = 1
 	}
+
 	if len(lines) > 0 {
 		fmt.Fprintln(f.Out, "")
 	}
-	for _, line := range lines {
+
+	for i, line := range lines {
+		if i+1+currentPage*list.LeetxItemsPerPage > wantedItems {
+			log.WithField("max", wantedItems).Debug("max limit of items to display reached, stopping")
+			break
+		}
 		fmt.Fprintf(f.Out, "%s\n\t%s\n\tsize: %s, seeders: %d, leeches: %d\n\n",
 			line.Item.Name,
 			line.Item.Href,

@@ -29,7 +29,7 @@ func (f *Filme) Visit1337xListPage(
 	return nil
 }
 
-func (f *Filme) On1337xListPageCrawled(lines []*list.Line, pagination *list.Pagination, r *colly.Response, log logrus.Entry) {
+func (f *Filme) On1337xListPageCrawled(lines []*list.Line, pagination *list.Pagination, wantedItems int, r *colly.Response, log logrus.Entry) {
 	if pagination != nil {
 		fmt.Fprintf(f.Out, "current page: %d\n", pagination.Current)
 		fmt.Fprintf(f.Out, "pages count: %d\n", pagination.PagesCount)

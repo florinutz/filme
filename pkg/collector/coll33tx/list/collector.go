@@ -10,7 +10,7 @@ import (
 )
 
 // PageCrawledCallback represents callback code that has access to all page data
-type PageCrawledCallback func(lines []*Line, pagination *Pagination, r *colly.Response, log logrus.Entry)
+type PageCrawledCallback func(lines []*Line, pagination *Pagination, wantedItems int, r *colly.Response, log logrus.Entry)
 
 // ListCollector is a wrapper around the colly collector + listing page data
 type Collector struct {
@@ -22,6 +22,8 @@ type Collector struct {
 	Err           io.Writer
 	Log           logrus.Entry
 }
+
+const LeetxItemsPerPage = 50
 
 // NewCollector instantiates a list page collector
 func NewCollector(
@@ -75,7 +77,7 @@ func NewCollector(
 		}
 
 		pagination := doc.GetPagination()
-		col.OnPageCrawled(lines, pagination, resp, *log)
+		col.OnPageCrawled(lines, pagination, wantedItems, resp, *log)
 
 		if pagination != nil && pagination.Current == 1 && col.pagesNeeded > 1 {
 			// This is the first page out of many, so let's launch parallel Visits to as many of them as we need to
