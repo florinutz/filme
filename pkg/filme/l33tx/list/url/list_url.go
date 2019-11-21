@@ -6,14 +6,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/florinutz/filme/pkg/config/value"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/encoding"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/search_category"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
 )
 
 func GetListUrl(
 	search string,
-	sort value.LeetxListSortValue,
-	category *value.LeetxListSearchCategory,
-	movieEncoding *value.LeetxListEncoding,
+	sort sort.Value,
+	category *search_category.SearchCategory,
+	movieEncoding *encoding.ListEncoding,
 ) (u *url.URL, err error) {
 
 	if search == "" { // must be a movies/encoding search
@@ -30,7 +32,7 @@ func GetListUrl(
 	return getSearchUrl(search, category, sort), nil
 }
 
-func getSearchUrl(search string, category *value.LeetxListSearchCategory, sort value.LeetxListSortValue) *url.URL {
+func getSearchUrl(search string, category *search_category.SearchCategory, sort sort.Value) *url.URL {
 	const tpl = "https://1337x.to/sort-category-search/game%20of%20thrones%20s04e03/TV/time/desc/1/"
 	u, _ := url.Parse(tpl)
 	p := strings.Split(u.Path, "/")
@@ -60,7 +62,7 @@ func getSearchUrl(search string, category *value.LeetxListSearchCategory, sort v
 	return u
 }
 
-func getEncodingUrl(encoding value.LeetxListEncoding, sort value.LeetxListSortValue) *url.URL {
+func getEncodingUrl(encoding encoding.ListEncoding, sort sort.Value) *url.URL {
 	const tpl = "https://1337x.to/sort-sub/42/seeders/desc/1/"
 
 	u, _ := url.Parse(tpl)

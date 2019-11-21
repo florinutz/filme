@@ -1,4 +1,4 @@
-package value
+package sort
 
 import (
 	"fmt"
@@ -10,17 +10,17 @@ import (
 type sortCriteria uint8
 
 const (
-	SortCriteriaTime sortCriteria = iota
-	SortCriteriaSize
-	SortCriteriaSeeders
-	SortCriteriaLeechers
+	CriteriaTime sortCriteria = iota
+	CriteriaSize
+	CriteriaSeeders
+	CriteriaLeechers
 )
 
 var possibleCriteriaValues = map[sortCriteria]string{
-	SortCriteriaTime:     "time",
-	SortCriteriaSize:     "size",
-	SortCriteriaSeeders:  "seeders",
-	SortCriteriaLeechers: "leechers",
+	CriteriaTime:     "time",
+	CriteriaSize:     "size",
+	CriteriaSeeders:  "seeders",
+	CriteriaLeechers: "leechers",
 }
 
 func (c sortCriteria) String() string {
@@ -42,13 +42,13 @@ func getSortCriteriaFromStr(criteria string) *sortCriteria {
 type sortOrder uint8
 
 const (
-	SortOrderAsc sortOrder = iota
-	SortOrderDesc
+	OrderAsc sortOrder = iota
+	OrderDesc
 )
 
 var possibleOrderValues = map[sortOrder]string{
-	SortOrderAsc:  "asc",
-	SortOrderDesc: "desc",
+	OrderAsc:  "asc",
+	OrderDesc: "desc",
 }
 
 func getSortOrderFromStr(order string) *sortOrder {
@@ -64,20 +64,20 @@ func (o sortOrder) String() string {
 	return possibleOrderValues[o]
 }
 
-type LeetxListSortValue struct {
+type Value struct {
 	Criteria sortCriteria
 	Order    sortOrder
 }
 
-func (v *LeetxListSortValue) String() string {
+func (v *Value) String() string {
 	return fmt.Sprintf("%s-%s", v.Criteria, v.Order)
 }
 
 // endregion
 // endregion
 
-func (v *LeetxListSortValue) Set(value string) error {
-	incomingValue, err := NewLeetxListSortValue(value)
+func (v *Value) Set(value string) error {
+	incomingValue, err := NewValue(value)
 	if err != nil {
 		return fmt.Errorf("can't set value: %w", err)
 	}
@@ -85,11 +85,11 @@ func (v *LeetxListSortValue) Set(value string) error {
 	return nil
 }
 
-func (*LeetxListSortValue) Type() string {
+func (*Value) Type() string {
 	return "sort-pair"
 }
 
-func GetAllLeetxListSortValues() (values []string) {
+func GetAllValues() (values []string) {
 	for _, cv := range possibleCriteriaValues {
 		for _, ov := range possibleOrderValues {
 			values = append(values, fmt.Sprintf("%s-%s", cv, ov))
@@ -98,7 +98,7 @@ func GetAllLeetxListSortValues() (values []string) {
 	return
 }
 
-func NewLeetxListSortValue(value string) (*LeetxListSortValue, error) {
+func NewValue(value string) (*Value, error) {
 	err := fmt.Errorf("value '%s' is not a valid criteria-order sort pair", value)
 
 	spl := strings.Split(value, "-")
@@ -116,5 +116,5 @@ func NewLeetxListSortValue(value string) (*LeetxListSortValue, error) {
 		return nil, fmt.Errorf("invalid sort order in value '%s'", value)
 	}
 
-	return &LeetxListSortValue{*criteria, *order}, nil
+	return &Value{*criteria, *order}, nil
 }

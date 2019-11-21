@@ -5,6 +5,9 @@ import (
 
 	"github.com/florinutz/filme/pkg/collector/coll33tx/list"
 	"github.com/florinutz/filme/pkg/config/value"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/encoding"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/search_category"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/url"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
@@ -14,9 +17,9 @@ func (f *Filme) Search(
 	searchStr string,
 	requiredItems int,
 	goIntoDetails bool,
-	category value.LeetxListSearchCategory,
-	movieEncoding value.LeetxListEncoding,
-	sort value.LeetxListSortValue,
+	category search_category.SearchCategory,
+	movieEncoding encoding.ListEncoding,
+	sort sort.Value,
 	debugLevel value.DebugLevelValue) error {
 
 	startUrl, err := url.GetListUrl(searchStr, sort, &category, &movieEncoding)

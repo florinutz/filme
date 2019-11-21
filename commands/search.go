@@ -5,6 +5,9 @@ import (
 	"strings"
 
 	"github.com/florinutz/filme/pkg/config/value"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/encoding"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/search_category"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
 	"github.com/florinutz/filme/pkg/filme"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -16,9 +19,9 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 		numberOfDesiredItems int
 		goIntoDetails        bool // todo implement this
 		debugLevel           value.DebugLevelValue
-		sort                 value.LeetxListSortValue
-		category             value.LeetxListSearchCategory
-		encoding             value.LeetxListEncoding
+		sort                 sort.Value
+		category             search_category.SearchCategory
+		encoding             encoding.ListEncoding
 	}
 
 	cmd = &cobra.Command{
@@ -50,23 +53,23 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 		strings.Join(value.GetAllLevels(), ", ")))
 
 	// default movie category "all"
-	opts.category = value.SearchCategoryAll
+	opts.category = search_category.SearchCategoryAll
 	cmd.Flags().VarP(&opts.category, "category", "c", fmt.Sprintf("one of: %s",
-		strings.Join(value.GetAllLeetxListMovieSearchCategoryValues(), ", ")))
+		strings.Join(search_category.GetAllSearchCategories(), ", ")))
 
 	// default movie encoding 1080p
-	opts.encoding = value.EncodingHD
+	opts.encoding = encoding.EncHD
 	cmd.Flags().VarP(&opts.encoding, "encoding", "e", fmt.Sprintf("one of: %s",
-		strings.Join(value.GetAllLeetxListMovieEncodingValues(), ", ")))
+		strings.Join(encoding.GetAll(), ", ")))
 
 	// default sorting
-	defaultSort, err := value.NewLeetxListSortValue("time-desc")
+	defaultSort, err := sort.NewValue("time-desc")
 	if err != nil {
 		panic("shouldn't happen, since the value above is valid. RIGHT?")
 	}
 	opts.sort = *defaultSort
 	cmd.Flags().VarP(&opts.sort, "sort", "s", fmt.Sprintf("one of: %s",
-		strings.Join(value.GetAllLeetxListSortValues(), ", ")))
+		strings.Join(sort.GetAllValues(), ", ")))
 
 	return
 }
