@@ -36,10 +36,10 @@ func init() {
 
 type document struct {
 	*goquery.Document
-	log *log.Entry
+	log log.Entry
 }
 
-func NewDocument(r *colly.Response, log *log.Entry) (*document, error) {
+func NewDocument(r *colly.Response, log log.Entry) (*document, error) {
 	d, err := collector.GetResponseDocument(r)
 	if err != nil {
 		return nil, err

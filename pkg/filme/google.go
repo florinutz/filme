@@ -65,7 +65,7 @@ no results
 
 func (f *Filme) SearchGoogle(url string, onlyFilmRelatedItems bool, debugLevel value.DebugLevelValue) error {
 	log := f.Log.WithField("start_url", url)
-	col := search.NewCollector(f.onGooglePageCrawled, onlyFilmRelatedItems, log)
+	col := search.NewCollector(f.onGooglePageCrawled, onlyFilmRelatedItems, *log)
 	err := col.Visit(url)
 	if err != nil {
 		log.WithError(err).Warn("visit error")
@@ -76,7 +76,7 @@ func (f *Filme) SearchGoogle(url string, onlyFilmRelatedItems bool, debugLevel v
 }
 
 func (f *Filme) onGooglePageCrawled(items map[int]search.BaseItem, err error, onlyFilmRelatedItems bool,
-	r *colly.Response, log *logrus.Entry) {
+	r *colly.Response, log logrus.Entry) {
 	if onlyFilmRelatedItems {
 		sources := search.GetFilmSources(items)
 		if err = tpls.ExecuteTemplate(os.Stdout, "sources_list", sources); err != nil {

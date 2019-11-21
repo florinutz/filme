@@ -9,7 +9,7 @@ import (
 )
 
 // PageCrawledCallback represents callback code that has access to all page data
-type PageCrawledCallback func(lines []*Line, pagination *Pagination, r *colly.Response, log *log.Entry)
+type PageCrawledCallback func(lines []*Line, pagination *Pagination, r *colly.Response, log log.Entry)
 
 // ListCollector is a wrapper around the colly collector + listing page data
 type Collector struct {
@@ -17,14 +17,14 @@ type Collector struct {
 	wantedItems   int
 	pagesNeeded   int
 	OnPageCrawled PageCrawledCallback
-	Log           *log.Entry
+	Log           log.Entry
 }
 
 // NewCollector instantiates a list page collector
 func NewCollector(
 	onPageCrawled PageCrawledCallback,
 	wantedItems int,
-	log *log.Entry,
+	log log.Entry,
 	options ...func(collector *colly.Collector),
 ) *Collector {
 	if wantedItems == 0 {

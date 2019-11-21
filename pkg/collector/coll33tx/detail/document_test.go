@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/florinutz/filme/pkg/collector"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -18,7 +19,8 @@ func TestDetailPage_document_data(t *testing.T) {
 		collector.FatalIfErr(err, t)
 	}
 
-	doc, err := NewDocument(collyResponse, nil)
+	blankLogEntry := logrus.NewEntry(logrus.New())
+	doc, err := NewDocument(collyResponse, *blankLogEntry)
 	if err != nil {
 		collector.FatalIfErr(err, t)
 	}

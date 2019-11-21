@@ -14,7 +14,7 @@ import (
 
 const DomainGoogle = "www.google.com"
 
-func DomainConfig(c *colly.Collector, logEntry *log.Entry) {
+func DomainConfig(c *colly.Collector, logEntry log.Entry) {
 
 	for _, f := range []func(collector *colly.Collector){
 		colly.MaxDepth(1),
