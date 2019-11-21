@@ -16,7 +16,7 @@ func (f *Filme) Visit1337xListPage(
 ) error {
 	log := f.Log.WithField("start_url", listUrl)
 
-	col := list.NewCollector(f.On1337xListPageCrawled, 0, *log)
+	col := list.NewCollector(f.On1337xListPageCrawled, 0, f.Out, f.Err, *log)
 
 	err := col.Visit(listUrl)
 	if err != nil {

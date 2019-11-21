@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/PuerkitoBio/goquery"
@@ -44,10 +45,23 @@ type Line struct {
 
 // GetLines returns list items along with their errors / missing stuff
 func (doc *document) GetLines() ([]*Line, error) {
+	// look for no results msg
+	possibleNotFound := doc.Find(".page-content .box-info-detail p").Text()
+	if strings.Trim(possibleNotFound, " ") == "No results were returned." {
+		return nil, fmt.Errorf("no results")
+	}
+
+	// look for "smth went wrong" title
+	possibleErrorTitle := doc.Find("title").Text()
+	if strings.Trim(possibleErrorTitle, " ") == "Error something went wrong." {
+		return nil, fmt.Errorf("html title says smth went wrong")
+	}
+
+	// look for the actual lines
 	selector := ".page-content .table-striped tbody tr"
 	trs := doc.Find(selector)
 	if trs.Nodes == nil {
-		return nil, fmt.Errorf("selector '%s' not found in document at url %s", selector, doc.Url.String())
+		return nil, fmt.Errorf("selector '%s' not found in the retrieved html", selector)
 	}
 
 	var lines []*Line

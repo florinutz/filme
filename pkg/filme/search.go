@@ -26,12 +26,12 @@ func (f *Filme) Search(
 	}
 	log := f.Log.WithFields(map[string]interface{}{
 		"search":   searchStr,
-		"category": category,
-		"encoding": movieEncoding,
-		"sort":     sort,
+		"category": category.String(),
+		"encoding": movieEncoding.String(),
+		"sort":     sort.String(),
 	})
 
-	col := list.NewCollector(f.onSearchPageCrawled, requiredItems, *log)
+	col := list.NewCollector(f.onSearchPageCrawled, requiredItems, f.Out, f.Err, *log)
 
 	if startUrl == nil {
 		log.Fatal("empty url retrieved for search, please investigate")

@@ -24,19 +24,23 @@ type Pagination struct {
 
 // GetPagination returns nil if pagination is not present in the page and 0 for both Pagination values
 // if they're not found
-func (doc *document) GetPagination() (pagination *Pagination) {
+func (doc *document) GetPagination() *Pagination {
 	selection := doc.Find(".pagination")
 	if selection.Nodes == nil {
-		return
+		return nil
 	}
-	pagination = &Pagination{
+	pagination := &Pagination{
 		CurrentUrl: doc.Url,
 	}
+
 	pagination.PagesCount, _, _ = doc.readPageLink(selection.Find(".last a"))
 	pagination.Current, pagination.NextUrl, _ = doc.readPageLink(selection.Find(".active a"))
-	pagination.LinksTpl = urlTplSplitter.ReplaceAllString(pagination.NextUrl.String(), "/%d/")
 
-	return
+	if pagination.NextUrl != nil {
+		pagination.LinksTpl = urlTplSplitter.ReplaceAllString(pagination.NextUrl.String(), "/%d/")
+	}
+
+	return pagination
 }
 
 func (doc *document) readPageLink(link *goquery.Selection) (page int, nextPageUrl *url.URL, err error) {
