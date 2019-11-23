@@ -5,6 +5,7 @@ import (
 
 	"github.com/florinutz/filme/pkg/collector/coll33tx/list"
 	"github.com/florinutz/filme/pkg/config/value"
+	filter2 "github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
 )
@@ -16,7 +17,9 @@ func (f *Filme) Visit1337xListPage(
 ) error {
 	log := f.Log.WithField("start_url", listUrl)
 
-	col := list.NewCollector(f.On1337xListPageCrawled, 0, f.Out, f.Err, *log)
+	filter := filter2.Filter{}
+
+	col := list.NewCollector(f.On1337xListPageCrawled, filter, f.Out, f.Err, *log)
 
 	err := col.Visit(listUrl)
 	if err != nil {
@@ -29,7 +32,13 @@ func (f *Filme) Visit1337xListPage(
 	return nil
 }
 
-func (f *Filme) On1337xListPageCrawled(lines []*list.Line, pagination *list.Pagination, wantedItems int, r *colly.Response, log logrus.Entry) {
+func (f *Filme) On1337xListPageCrawled(
+	lines []*list.Line,
+	clientSideFiltering filter2.Filter,
+	pagination *list.Pagination,
+	r *colly.Response,
+	log logrus.Entry,
+) {
 	if pagination != nil {
 		fmt.Fprintf(f.Out, "current page: %d\n", pagination.Current)
 		fmt.Fprintf(f.Out, "pages count: %d\n", pagination.PagesCount)
@@ -43,7 +52,7 @@ func (f *Filme) On1337xListPageCrawled(lines []*list.Line, pagination *list.Pagi
 			line.Item.Href,
 			line.Item.Size,
 			line.Item.Seeders,
-			line.Item.Leeches)
+			line.Item.Leechers)
 		for _, err := range line.Errs {
 			fmt.Fprintf(f.Err, "line error: %s", err)
 		}

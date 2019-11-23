@@ -9,6 +9,7 @@ import (
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/search_category"
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
 	"github.com/florinutz/filme/pkg/filme"
+	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -16,12 +17,12 @@ import (
 // BuildSearchCmd mirrors the 1337x search cmd
 func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 	var opts struct {
-		numberOfDesiredItems int
-		goIntoDetails        bool // todo implement this
-		debugLevel           value.DebugLevelValue
-		sort                 sort.Value
-		category             search_category.SearchCategory
-		encoding             encoding.ListEncoding
+		goIntoDetails bool // todo implement this
+		debugLevel    value.DebugLevelValue
+		sort          sort.Value
+		category      search_category.SearchCategory
+		filters       filter.Filter
+		encoding      encoding.ListEncoding
 	}
 
 	cmd = &cobra.Command{
@@ -31,18 +32,19 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return f.Search(
 				strings.Join(args, " "),
-				opts.numberOfDesiredItems,
 				opts.goIntoDetails,
 				opts.category,
 				opts.encoding,
 				opts.sort,
+				opts.filters,
 				opts.debugLevel,
 			)
 		},
 	}
 
-	cmd.Flags().IntVarP(&opts.numberOfDesiredItems, "wanted-items", "n", 20,
-		"keep fetching pages until the number of result items was met")
+	filters := &opts.filters
+	cmd.Flags().AddFlagSet(filters.GetLinkedFlagSet())
+
 	cmd.Flags().BoolVarP(&opts.goIntoDetails, "crawl-details", "d", false,
 		"follows every link in the list and fetches detail pages data")
 
