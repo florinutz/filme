@@ -29,6 +29,12 @@ func (doc *document) GetPagination() *Pagination {
 	if selection.Nodes == nil {
 		return nil
 	}
+
+	// in our case empty = missing
+	if selection.Find("li").Nodes == nil {
+		return nil
+	}
+
 	pagination := &Pagination{
 		CurrentUrl: doc.Url,
 	}

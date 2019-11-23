@@ -1,25 +1,27 @@
-package l33tx_movies
+package url
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/florinutz/filme/pkg/config/value"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/encoding"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/search_category"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
 )
 
 func TestSearchListUrl(t *testing.T) {
 	var (
-		searchCategoryAll = value.SearchCategoryAll
-		searchCategoryTV  = value.SearchCategoryTV
-		searchCategoryXXX = value.SearchCategoryXXX
-		encodingUHD       = value.EncodingUHD
+		searchCategoryAll = search_category.SearchCategoryAll
+		searchCategoryTV  = search_category.SearchCategoryTV
+		searchCategoryXXX = search_category.SearchCategoryXXX
+		encodingUHD       = encoding.EncUHD
 	)
 
 	type args struct {
 		search   string
-		sort     value.LeetxListSortValue
-		category *value.LeetxListSearchCategory
-		encoding *value.LeetxListEncoding
+		sort     sort.Value
+		category *search_category.SearchCategory
+		encoding *encoding.ListEncoding
 	}
 	tests := []struct {
 		name    string
@@ -31,7 +33,7 @@ func TestSearchListUrl(t *testing.T) {
 			"TV time-desc",
 			args{
 				"game of thrones s04e03",
-				value.LeetxListSortValue{Criteria: value.SortCriteriaTime, Order: value.SortOrderDesc},
+				sort.Value{Criteria: sort.CriteriaTime, Order: sort.OrderDesc},
 				&searchCategoryTV,
 				nil,
 			},
@@ -42,7 +44,7 @@ func TestSearchListUrl(t *testing.T) {
 			"XXX size-asc",
 			args{
 				"game of thrones s04e03",
-				value.LeetxListSortValue{Criteria: value.SortCriteriaSize, Order: value.SortOrderAsc},
+				sort.Value{Criteria: sort.CriteriaSize, Order: sort.OrderAsc},
 				&searchCategoryXXX,
 				nil,
 			},
@@ -53,7 +55,7 @@ func TestSearchListUrl(t *testing.T) {
 			"ALL with category",
 			args{
 				"game of thrones s04e03",
-				value.LeetxListSortValue{Criteria: value.SortCriteriaTime, Order: value.SortOrderDesc},
+				sort.Value{Criteria: sort.CriteriaTime, Order: sort.OrderDesc},
 				&searchCategoryAll,
 				nil,
 			},
@@ -64,7 +66,7 @@ func TestSearchListUrl(t *testing.T) {
 			"ALL with nil category",
 			args{
 				"game of thrones s04e03",
-				value.LeetxListSortValue{Criteria: value.SortCriteriaTime, Order: value.SortOrderDesc},
+				sort.Value{Criteria: sort.CriteriaTime, Order: sort.OrderDesc},
 				nil,
 				nil,
 			},
@@ -75,7 +77,7 @@ func TestSearchListUrl(t *testing.T) {
 			"encoding UHD",
 			args{
 				"",
-				value.LeetxListSortValue{Criteria: value.SortCriteriaSeeders, Order: value.SortOrderDesc},
+				sort.Value{Criteria: sort.CriteriaSeeders, Order: sort.OrderDesc},
 				nil,
 				&encodingUHD,
 			},
@@ -86,7 +88,7 @@ func TestSearchListUrl(t *testing.T) {
 			"error for empty search and encoding",
 			args{
 				"",
-				value.LeetxListSortValue{Criteria: value.SortCriteriaSize, Order: value.SortOrderAsc},
+				sort.Value{Criteria: sort.CriteriaSize, Order: sort.OrderAsc},
 				&searchCategoryXXX,
 				nil,
 			},

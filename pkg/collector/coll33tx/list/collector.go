@@ -5,18 +5,25 @@ import (
 	"io"
 
 	"github.com/florinutz/filme/pkg/collector/coll33tx"
+	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
 )
 
 // PageCrawledCallback represents callback code that has access to all page data
-type PageCrawledCallback func(lines []*Line, pagination *Pagination, wantedItems int, r *colly.Response, log logrus.Entry)
+type PageCrawledCallback func(
+	lines []*Line,
+	clientSideFiltering filter.Filter,
+	pagination *Pagination,
+	r *colly.Response,
+	log logrus.Entry,
+)
 
 // ListCollector is a wrapper around the colly collector + listing page data
 type Collector struct {
 	*colly.Collector
-	wantedItems   int
-	pagesNeeded   int
+	wantedItems   uint
+	pagesNeeded   uint
 	OnPageCrawled PageCrawledCallback
 	Out           io.Writer
 	Err           io.Writer
@@ -28,23 +35,19 @@ const LeetxItemsPerPage = 50
 // NewCollector instantiates a list page collector
 func NewCollector(
 	onPageCrawled PageCrawledCallback,
-	wantedItems int,
+	clientSideFiltering filter.Filter,
 	out io.Writer,
 	err io.Writer,
 	log logrus.Entry,
 	options ...func(collector *colly.Collector),
 ) *Collector {
-	if wantedItems == 0 {
-		panic("I'm pretty sure you want more than 0 items")
-	}
-
 	c := colly.NewCollector(options...)
 
 	coll33tx.DomainConfig(c, log)
 
 	col := Collector{
 		Collector:     c,
-		wantedItems:   wantedItems,
+		wantedItems:   clientSideFiltering.MaxItems,
 		pagesNeeded:   0,
 		OnPageCrawled: onPageCrawled,
 		Out:           out,
@@ -77,11 +80,11 @@ func NewCollector(
 		}
 
 		pagination := doc.GetPagination()
-		col.OnPageCrawled(lines, pagination, wantedItems, resp, *log)
+		col.OnPageCrawled(lines, clientSideFiltering, pagination, resp, *log)
 
 		if pagination != nil && pagination.Current == 1 && col.pagesNeeded > 1 {
 			// This is the first page out of many, so let's launch parallel Visits to as many of them as we need to
-			for pageNo := 2; pageNo <= col.pagesNeeded; pageNo++ {
+			for pageNo := uint(2); pageNo <= col.pagesNeeded; pageNo++ {
 				pUrl := fmt.Sprintf(pagination.LinksTpl, pageNo)
 
 				if err := col.Visit(pUrl); err != nil {

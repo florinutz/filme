@@ -5,22 +5,25 @@ import (
 
 	"github.com/florinutz/filme/pkg/collector/coll33tx/list"
 	"github.com/florinutz/filme/pkg/config/value"
-	"github.com/florinutz/filme/pkg/filme/l33tx_movies"
-
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/encoding"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/search_category"
+	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
+	filt "github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
+	"github.com/florinutz/filme/pkg/filme/l33tx/list/url"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
 )
 
 func (f *Filme) Search(
 	searchStr string,
-	requiredItems int,
 	goIntoDetails bool,
-	category value.LeetxListSearchCategory,
-	movieEncoding value.LeetxListEncoding,
-	sort value.LeetxListSortValue,
+	category search_category.SearchCategory,
+	movieEncoding encoding.ListEncoding,
+	sort sort.Value,
+	filters filt.Filter,
 	debugLevel value.DebugLevelValue) error {
 
-	startUrl, err := l33tx_movies.GetListUrl(searchStr, sort, &category, &movieEncoding)
+	startUrl, err := url.GetListUrl(searchStr, sort, &category, &movieEncoding)
 	if err != nil {
 		return fmt.Errorf("can't get start url: %w", err)
 	}
@@ -31,7 +34,7 @@ func (f *Filme) Search(
 		"sort":     sort.String(),
 	})
 
-	col := list.NewCollector(f.onSearchPageCrawled, requiredItems, f.Out, f.Err, *log)
+	col := list.NewCollector(f.onSearchPageCrawled, filters, f.Out, f.Err, *log)
 
 	if startUrl == nil {
 		log.Fatal("empty url retrieved for search, please investigate")
@@ -51,12 +54,12 @@ func (f *Filme) Search(
 
 func (f *Filme) onSearchPageCrawled(
 	lines []*list.Line,
+	clientSideFiltering filt.Filter,
 	pagination *list.Pagination,
-	wantedItems int,
 	r *colly.Response,
 	log logrus.Entry,
 ) {
-	var currentPage int
+	currentPage := 1
 
 	if pagination != nil {
 		log.WithFields(map[string]interface{}{
@@ -64,8 +67,6 @@ func (f *Filme) onSearchPageCrawled(
 			"pagination_count":   pagination.PagesCount,
 		}).Debug("pagination found")
 		currentPage = pagination.Current
-	} else {
-		currentPage = 1
 	}
 
 	if len(lines) > 0 {
@@ -73,8 +74,16 @@ func (f *Filme) onSearchPageCrawled(
 	}
 
 	for i, line := range lines {
-		if i+1+currentPage*list.LeetxItemsPerPage > wantedItems {
-			log.WithField("max", wantedItems).Debug("max limit of items to display reached, stopping")
+		log = *log.WithField("item", line.Item)
+		if errs := line.Item.Validate(clientSideFiltering); len(errs) > 0 {
+			for _, err := range errs {
+				log.WithError(err).Debug("item validation err")
+			}
+			continue
+		}
+		currentItemOffset := i + 1 + (currentPage-1)*list.LeetxItemsPerPage
+		if clientSideFiltering.MaxItems > 0 && currentItemOffset > int(clientSideFiltering.MaxItems) {
+			log.WithField("max", clientSideFiltering.MaxItems).Debug("max limit of items to display reached, stopping")
 			break
 		}
 		fmt.Fprintf(f.Out, "%s\n\t%s\n\tsize: %s, seeders: %d, leeches: %d\n\n",
@@ -82,7 +91,7 @@ func (f *Filme) onSearchPageCrawled(
 			line.Item.Href,
 			line.Item.Size,
 			line.Item.Seeders,
-			line.Item.Leeches)
+			line.Item.Leechers)
 		for _, err := range line.Errs {
 			fmt.Fprintf(f.Err, "line error: %s", err)
 		}

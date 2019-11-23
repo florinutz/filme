@@ -1,11 +1,11 @@
-package value
+package search_category
 
 import "fmt"
 
-type LeetxListSearchCategory uint8
+type SearchCategory uint8
 
 const (
-	SearchCategoryAll LeetxListSearchCategory = iota
+	SearchCategoryAll SearchCategory = iota
 	SearchCategoryMovies
 	SearchCategoryTV
 	SearchCategoryDocumentaries
@@ -13,7 +13,7 @@ const (
 	SearchCategoryXXX
 )
 
-var possibleCategoryValues = map[LeetxListSearchCategory]string{
+var possibleCategoryValues = map[SearchCategory]string{
 	SearchCategoryAll:           "all",
 	SearchCategoryMovies:        "movies",
 	SearchCategoryTV:            "tv",
@@ -22,7 +22,7 @@ var possibleCategoryValues = map[LeetxListSearchCategory]string{
 	SearchCategoryXXX:           "xxx",
 }
 
-func (v *LeetxListSearchCategory) TranslateToUrlParam() string {
+func (v *SearchCategory) TranslateToUrlParam() string {
 	switch *v {
 	case SearchCategoryMovies:
 		return "Movies"
@@ -39,14 +39,14 @@ func (v *LeetxListSearchCategory) TranslateToUrlParam() string {
 	}
 }
 
-func (v *LeetxListSearchCategory) String() string {
+func (v *SearchCategory) String() string {
 	if v, ok := possibleCategoryValues[*v]; ok {
 		return v
 	}
 	return ""
 }
 
-func (v *LeetxListSearchCategory) Set(value string) (err error) {
+func (v *SearchCategory) Set(value string) (err error) {
 	for key, val := range possibleCategoryValues {
 		if val == value {
 			*v = key
@@ -56,11 +56,11 @@ func (v *LeetxListSearchCategory) Set(value string) (err error) {
 	return fmt.Errorf("value '%s' is not a valid search category flag", value)
 }
 
-func (*LeetxListSearchCategory) Type() string {
+func (*SearchCategory) Type() string {
 	return "category"
 }
 
-func GetAllLeetxListMovieSearchCategoryValues() (values []string) {
+func GetAllSearchCategories() (values []string) {
 	for _, possibleValue := range possibleCategoryValues {
 		values = append(values, possibleValue)
 	}

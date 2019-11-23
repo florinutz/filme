@@ -3,16 +3,17 @@ package value
 import "github.com/sirupsen/logrus"
 
 type DebugLevelValue struct {
-	level logrus.Level
+	logrus.Level
 }
 
-func (v *DebugLevelValue) String() string {
-	return v.level.String()
-}
+func (v *DebugLevelValue) Set(lvl string) error {
+	level, err := logrus.ParseLevel(lvl)
+	if err != nil {
+		return err
+	}
+	v.Level = level
 
-func (v *DebugLevelValue) Set(lvl string) (err error) {
-	v.level, err = logrus.ParseLevel(lvl)
-	return
+	return nil
 }
 
 func (*DebugLevelValue) Type() string {
