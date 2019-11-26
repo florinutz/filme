@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/florinutz/filme/pkg/config/value"
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/encoding"
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/search_category"
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
 	"github.com/florinutz/filme/pkg/filme"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/input"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +17,6 @@ import (
 func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 	var opts struct {
 		goIntoDetails bool // todo implement this
-		debugLevel    value.DebugLevelValue
 		sort          sort.Value
 		category      search_category.SearchCategory
 		filters       filter.Filter
@@ -39,7 +36,7 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 				Sort:     opts.sort,
 			}
 
-			return f.Search(opts.goIntoDetails, inputs, opts.filters, opts.debugLevel)
+			return f.Search(opts.goIntoDetails, inputs, opts.filters)
 		},
 	}
 
@@ -48,12 +45,6 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 
 	cmd.Flags().BoolVarP(&opts.goIntoDetails, "crawl-details", "d", false,
 		"follows every link in the list and fetches detail pages data")
-
-	// default debug level
-	defaultDebugLevel := logrus.DebugLevel
-	_ = opts.debugLevel.Set(defaultDebugLevel.String())
-	cmd.Flags().VarP(&opts.debugLevel, "debug-level", "l", fmt.Sprintf("one of: %s",
-		strings.Join(value.GetAllLevels(), ", ")))
 
 	// default movie category "all"
 	opts.category = search_category.SearchCategoryAll
