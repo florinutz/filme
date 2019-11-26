@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	DataFile = "../test-data"
+	DataFile = "../../../collector/coll33tx/test-data"
 )
 
 func Test_ListPage(t *testing.T) {
