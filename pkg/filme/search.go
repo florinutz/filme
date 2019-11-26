@@ -51,8 +51,8 @@ func localLogFields(inputs input.ListingInput, goIntoDetails bool, filters filte
 	if inputs.Search != "" {
 		result["search"] = inputs.Search
 	}
-	if inputs.Url != nil {
-		result["search_inputs_url"] = inputs.Url.String()
+	if inputs.URL != nil {
+		result["search_inputs_url"] = inputs.URL.String()
 	}
 
 	for key, v := range filters.GetLogFields() {

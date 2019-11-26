@@ -12,13 +12,17 @@ import (
 // todo validation for the 2 cases from inside GetListUrl
 type ListingInput struct {
 	Search   string
-	Url      *url.URL
+	URL      *url.URL
 	Category *search_category.SearchCategory
 	Encoding *encoding.ListEncoding
 	Sort     sort.Value
 }
 
 func (i ListingInput) GetStartUrl() (*url.URL, error) {
+	if i.URL != nil {
+		return i.URL, nil
+	}
+
 	return listurl.GetListUrl(
 		i.Search,
 		sort.Value{Criteria: sort.CriteriaSeeders, Order: sort.OrderDesc},

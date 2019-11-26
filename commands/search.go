@@ -38,7 +38,7 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 
 			if strings.HasPrefix(what, "https://1337x.to/") {
 				var err error
-				if inputs.Url, err = url.Parse(what); err != nil {
+				if inputs.URL, err = url.Parse(what); err != nil {
 					return err
 				}
 			} else {
