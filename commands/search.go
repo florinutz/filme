@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/encoding"
@@ -28,12 +29,20 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 		Short: "Search torrents",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			what := strings.Join(args, " ")
 			inputs := input.ListingInput{
-				Search:   strings.Join(args, " "),
-				Url:      nil, // todo merge search and the other command
 				Category: &opts.category,
 				Encoding: &opts.encoding,
 				Sort:     opts.sort,
+			}
+
+			if strings.HasPrefix(what, "https://1337x.to/") {
+				var err error
+				if inputs.Url, err = url.Parse(what); err != nil {
+					return err
+				}
+			} else {
+				inputs.Search = what
 			}
 
 			return f.Search(opts.goIntoDetails, inputs, opts.filters)
@@ -51,8 +60,6 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 	cmd.Flags().VarP(&opts.category, "category", "c", fmt.Sprintf("one of: %s",
 		strings.Join(search_category.GetAllSearchCategories(), ", ")))
 
-	// default movie encoding 1080p
-	opts.encoding = encoding.EncHD
 	cmd.Flags().VarP(&opts.encoding, "encoding", "e", fmt.Sprintf("one of: %s",
 		strings.Join(encoding.GetAll(), ", ")))
 
