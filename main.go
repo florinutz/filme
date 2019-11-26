@@ -32,7 +32,7 @@ func buildRootCommand() *cobra.Command {
 			f.Log.ReportCaller = f.DebugReportCaller
 		}}
 
-	defaultDebugLevel := logrus.ErrorLevel
+	defaultDebugLevel := logrus.PanicLevel
 	_ = f.DebugLevel.Set(defaultDebugLevel.String())
 	cmd.PersistentFlags().Var(&f.DebugLevel, "debug-level", fmt.Sprintf("one of: %s",
 		strings.Join(value.GetAllLevels(), ", ")))

@@ -15,22 +15,18 @@ func GetListUrl(
 	search string,
 	sort sort.Value,
 	category *search_category.SearchCategory,
-	movieEncoding *encoding.ListEncoding,
+	encoding *encoding.ListEncoding,
 ) (u *url.URL, err error) {
-
-	if search == "" { // must be a movies/encoding search
-		if movieEncoding == nil {
-			return nil, fmt.Errorf("you have to be looking for some encoding if there's no search query")
-		}
+	if encoding != nil {
 		if category != nil {
 			return nil, fmt.Errorf("category should be nil for an encoding listing")
 		}
 
-		return getEncodingUrl(*movieEncoding, sort), nil
-	}
+		if search != "" {
+			return nil, fmt.Errorf("the encoding listing takes priority. Ignoring search term '%s'", search)
+		}
 
-	if movieEncoding != nil {
-		return nil, fmt.Errorf("can't search if the encoding subcategory was specified")
+		return getEncodingUrl(*encoding, sort), nil
 	}
 
 	return getSearchUrl(search, category, sort), nil

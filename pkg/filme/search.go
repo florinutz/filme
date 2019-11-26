@@ -1,12 +1,14 @@
 package filme
 
 import (
+	"fmt"
+
 	"github.com/florinutz/filme/pkg/filme/l33tx/list"
-	filt "github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
+	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/input"
 )
 
-func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters filt.Filter) error {
+func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter) error {
 	logFields := localLogFields(inputs, goIntoDetails, filters)
 	log := *f.Log.WithFields(logFields)
 
@@ -16,7 +18,8 @@ func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters fi
 
 	startUrl, err := ls.GetStartUrl()
 	if err != nil {
-		log.WithError(err).Fatal()
+		log.WithError(err).Errorln()
+		return fmt.Errorf("could not assemble the url: %w\n\n", err)
 	}
 	if startUrl == nil {
 		log.Fatal("empty url retrieved for search, please investigate")
@@ -34,7 +37,7 @@ func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters fi
 	return nil
 }
 
-func localLogFields(inputs input.ListingInput, goIntoDetails bool, filters filt.Filter) (result map[string]interface{}) {
+func localLogFields(inputs input.ListingInput, goIntoDetails bool, filters filter.Filter) (result map[string]interface{}) {
 	result = map[string]interface{}{
 		"search_inputs_sort": inputs.Sort,
 		"with_details":       goIntoDetails,

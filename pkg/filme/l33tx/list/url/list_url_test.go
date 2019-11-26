@@ -85,12 +85,23 @@ func TestSearchListUrl(t *testing.T) {
 			false,
 		},
 		{
-			"error for empty search and encoding",
+			"error for encoding and category",
 			args{
 				"",
 				sort.Value{Criteria: sort.CriteriaSize, Order: sort.OrderAsc},
 				&searchCategoryXXX,
+				&encodingUHD,
+			},
+			"",
+			true,
+		},
+		{
+			"error for encoding and search",
+			args{
+				"smth",
+				sort.Value{Criteria: sort.CriteriaSize, Order: sort.OrderAsc},
 				nil,
+				&encodingUHD,
 			},
 			"",
 			true,
