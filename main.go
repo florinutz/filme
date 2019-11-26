@@ -30,7 +30,6 @@ func buildRootCommand() *cobra.Command {
 
 	crawlCmd := commands.BuildCrawlCmd(f)
 	crawlCmd.AddCommand(
-		commands.Build1337xListPageCmd(f),
 		commands.Build1337xDetailPageCmd(f),
 		commands.BuildImdbDetailPageCmd(f),
 		// commands.BuildGoogleCmd(f),

@@ -8,7 +8,7 @@ import (
 
 	"github.com/florinutz/filme/pkg/collector"
 	"github.com/florinutz/filme/pkg/collector/coll33tx/detail"
-	"github.com/florinutz/filme/pkg/collector/coll33tx/list"
+	"github.com/florinutz/filme/pkg/filme/l33tx/list"
 )
 
 const dataFile = "test-data"

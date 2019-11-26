@@ -10,6 +10,7 @@ import (
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
 	"github.com/florinutz/filme/pkg/filme"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
+	"github.com/florinutz/filme/pkg/filme/l33tx/list/input"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -30,15 +31,15 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 		Short: "Search torrents",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return f.Search(
-				strings.Join(args, " "),
-				opts.goIntoDetails,
-				opts.category,
-				opts.encoding,
-				opts.sort,
-				opts.filters,
-				opts.debugLevel,
-			)
+			inputs := input.ListingInput{
+				Search:   strings.Join(args, " "),
+				Url:      nil, // todo merge search and the other command
+				Category: &opts.category,
+				Encoding: &opts.encoding,
+				Sort:     opts.sort,
+			}
+
+			return f.Search(opts.goIntoDetails, inputs, opts.filters, opts.debugLevel)
 		},
 	}
 
