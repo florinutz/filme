@@ -27,13 +27,17 @@ func buildRootCommand() *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			f.Out = cmd.OutOrStdout()
 			f.Err = cmd.OutOrStderr()
+			f.Log.Out = f.Out
 			f.Log.Level = f.DebugLevel.Level
+			f.Log.ReportCaller = f.DebugReportCaller
 		}}
 
 	defaultDebugLevel := logrus.ErrorLevel
 	_ = f.DebugLevel.Set(defaultDebugLevel.String())
-	cmd.PersistentFlags().VarP(&f.DebugLevel, "debug-level", "", fmt.Sprintf("one of: %s",
+	cmd.PersistentFlags().Var(&f.DebugLevel, "debug-level", fmt.Sprintf("one of: %s",
 		strings.Join(value.GetAllLevels(), ", ")))
+
+	cmd.PersistentFlags().BoolVar(&f.DebugReportCaller, "debug-report-caller", false, "show debug callers")
 
 	crawlCmd := commands.BuildCrawlCmd(f)
 	crawlCmd.AddCommand(
