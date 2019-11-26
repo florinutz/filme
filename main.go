@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/florinutz/filme/commands"
-
+	"github.com/florinutz/filme/pkg/config/value"
 	"github.com/florinutz/filme/pkg/filme"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -24,9 +27,13 @@ func buildRootCommand() *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			f.Out = cmd.OutOrStdout()
 			f.Err = cmd.OutOrStderr()
+			f.Log.Level = f.DebugLevel.Level
 		}}
 
-	cmd.PersistentFlags().BoolVar(&f.Debug, "debug", false, "Enable debug logging")
+	defaultDebugLevel := logrus.ErrorLevel
+	_ = f.DebugLevel.Set(defaultDebugLevel.String())
+	cmd.PersistentFlags().VarP(&f.DebugLevel, "debug-level", "", fmt.Sprintf("one of: %s",
+		strings.Join(value.GetAllLevels(), ", ")))
 
 	crawlCmd := commands.BuildCrawlCmd(f)
 	crawlCmd.AddCommand(

@@ -29,6 +29,10 @@ func GetListUrl(
 		return getEncodingUrl(*movieEncoding, sort), nil
 	}
 
+	if movieEncoding != nil {
+		return nil, fmt.Errorf("can't search if the encoding subcategory was specified")
+	}
+
 	return getSearchUrl(search, category, sort), nil
 }
 
