@@ -38,7 +38,7 @@ func Test_ListPage(t *testing.T) {
 			t.Error("pagination not found")
 		}
 
-		expected := 35
+		expected := 39
 		if p.PagesCount != expected {
 			t.Errorf("wrong pages count (expected %d, got %d)", expected, p.PagesCount)
 		}

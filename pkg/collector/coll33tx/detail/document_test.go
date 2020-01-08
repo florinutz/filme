@@ -158,7 +158,7 @@ func TestDetailPage_document_data(t *testing.T) {
 	})
 
 	t.Run("Downloads", func(t *testing.T) {
-		expected := 521
+		expected := 805
 		got := torrent.Downloads
 		if expected != got {
 			t.Errorf("expected '%d' Downloads, got '%d'", expected, got)
@@ -166,7 +166,7 @@ func TestDetailPage_document_data(t *testing.T) {
 	})
 
 	t.Run("LastChecked", func(t *testing.T) {
-		expected := "4 months ago"
+		expected := "10 months ago"
 		got := torrent.LastChecked
 		if expected != got {
 			t.Errorf("expected LastChecked '%s', got '%s'", expected, got)
@@ -174,7 +174,7 @@ func TestDetailPage_document_data(t *testing.T) {
 	})
 
 	t.Run("DateUploaded", func(t *testing.T) {
-		expected := "4 months ago"
+		expected := "11 months ago"
 		got := torrent.DateUploaded
 		if expected != got {
 			t.Errorf("expected DateUploaded '%s', got '%s'", expected, got)
