@@ -17,7 +17,7 @@ func GetListUrl(
 	category *search_category.SearchCategory,
 	encoding *encoding.ListEncoding,
 ) (u *url.URL, err error) {
-	if encoding != nil {
+	if encoding != nil && *encoding > 0 {
 		if category != nil {
 			return nil, fmt.Errorf("category should be nil for an encoding listing")
 		}
