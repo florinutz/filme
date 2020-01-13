@@ -64,7 +64,7 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 		strings.Join(encoding.GetAll(), ", ")))
 
 	// default sorting
-	defaultSort, err := sort.NewValue("time-desc")
+	defaultSort, err := sort.NewValue("seeders-desc")
 	if err != nil {
 		panic("shouldn't happen, since the value above is valid. RIGHT?")
 	}
