@@ -32,6 +32,23 @@ func NewDocument(r *colly.Response) (*document, error) {
 
 // GetLines returns list items along with their errors / missing stuff
 func (doc *document) GetLines() ([]*line.Line, error) {
+	trs, err := doc.getTrs()
+	if err != nil {
+		return nil, err
+	}
+
+	var lines []*line.Line
+	trs.Each(func(i int, tr *goquery.Selection) {
+		line := new(line.Line)
+		line.Item, line.Errs = doc.trToItem(i, tr)
+		lines = append(lines, line)
+	})
+
+	return lines, nil
+}
+
+// getTrs returns the goquery selection for the trs in the list table
+func (doc *document) getTrs() (*goquery.Selection, error) {
 	// look for no results msg
 	possibleNotFound := doc.Find(".page-content .box-info-detail p").Text()
 	if strings.Trim(possibleNotFound, " ") == "No results were returned." {
@@ -50,15 +67,15 @@ func (doc *document) GetLines() ([]*line.Line, error) {
 	if trs.Nodes == nil {
 		return nil, fmt.Errorf("selector '%s' not found in the retrieved html", selector)
 	}
+	return trs, nil
+}
 
-	var lines []*line.Line
-	trs.Each(func(i int, tr *goquery.Selection) {
-		line := new(line.Line)
-		line.Item, line.Errs = doc.trToItem(i, tr)
-		lines = append(lines, line)
-	})
-
-	return lines, nil
+func (doc *document) CountItems() (int, error) {
+	trs, err := doc.getTrs()
+	if err != nil {
+		return 0, err
+	}
+	return len(trs.Nodes), nil
 }
 
 func (doc *document) trToItem(i int, tr *goquery.Selection) (item *line.Item, errs []error) {

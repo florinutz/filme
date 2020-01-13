@@ -14,7 +14,7 @@ func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters fi
 
 	ls := list.NewList(inputs, filters, f.Out, log)
 
-	col := list.NewCollector(*ls)
+	col := list.NewCollector(ls)
 
 	startUrl, err := ls.GetStartUrl()
 	if err != nil {

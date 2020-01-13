@@ -6,6 +6,7 @@ type Filter struct {
 	MaxItems uint
 	Seeders  *UintVal
 	Leechers *UintVal
+	Pages    *UintVal
 	Size     *UintVal
 }
 
@@ -23,19 +24,26 @@ func (f *Filter) GetLinkedFlagSet() *pflag.FlagSet {
 	if f.Leechers == nil {
 		f.Leechers = new(UintVal)
 	}
+	if f.Pages == nil {
+		f.Pages = new(UintVal)
+	}
 	if f.Size == nil {
 		f.Size = new(UintVal)
 	}
 
-	set.UintVarP(&f.MaxItems, "total", "t", 50, "specifies the maximum desired number of items to display")
+	set.UintVarP(&f.MaxItems, "total", "t", 20, "specifies the maximum desired number of "+
+		"items to display.\nDefaults to one page's worth of items.")
 
-	set.UintVar(&f.Seeders.Max, "max-seeders", 0, "only show values below this")
-	set.UintVar(&f.Seeders.Min, "min-seeders", 0, "only show values above this")
+	set.UintVar(&f.Seeders.Max, "seeders-max", 0, "ignores items with more seeders")
+	set.UintVar(&f.Seeders.Min, "seeders-min", 0, "ignores items with less seeders")
 
-	set.UintVar(&f.Leechers.Max, "max-leechers", 0, "only show values below this")
-	set.UintVar(&f.Leechers.Min, "min-leechers", 0, "only show values above this")
+	set.UintVar(&f.Leechers.Max, "leechers-max", 0, "ignores items with more leechers")
+	set.UintVar(&f.Leechers.Min, "leechers-min", 0, "ignores items with less leechers")
 
-	set.UintVar(&f.Size.Max, "max-size", 0, "only show values below this")
+	set.UintVar(&f.Pages.Max, "page-max", 0, "stop at this page")
+	set.UintVar(&f.Pages.Min, "page-min", 0, "start at this page")
+
+	set.UintVar(&f.Size.Max, "size", 0, "ignore items bigger than this")
 
 	return set
 }
@@ -57,6 +65,14 @@ func (f *Filter) GetLogFields() (result map[string]interface{}) {
 		}
 		if f.Leechers.Max != 0 {
 			result["filter_leechers_max"] = f.Leechers.Max
+		}
+	}
+	if f.Pages != nil {
+		if f.Pages.Min != 0 {
+			result["filter_pages_min"] = f.Pages.Min
+		}
+		if f.Pages.Max != 0 {
+			result["filter_pages_max"] = f.Pages.Max
 		}
 	}
 	if f.Size != nil {

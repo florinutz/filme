@@ -25,7 +25,7 @@ func (i ListingInput) GetStartUrl() (*url.URL, error) {
 
 	return listurl.GetListUrl(
 		i.Search,
-		sort.Value{Criteria: sort.CriteriaSeeders, Order: sort.OrderDesc},
+		i.Sort,
 		i.Category,
 		i.Encoding,
 	)
