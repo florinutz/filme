@@ -18,6 +18,10 @@ func (p Paging) getNextPages(maxItems int) (pages []int) {
 
 	wantedPages := (maxItems-1)/p.itemsPerPage + 1
 
+	if p.filterHigh > 0 && p.filterLow > 0 {
+		wantedPages = p.filterHigh - p.filterLow + 1
+	}
+
 	if p.limitHigh < wantedPages+1 {
 		wantedPages = p.limitHigh - 1
 	}

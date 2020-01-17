@@ -77,7 +77,7 @@ func onScraped(col Collector, ls *Container) func(resp *colly.Response) {
 					return
 				}
 
-				ls.paging.pagesToCrawl = ls.paging.getNextPages(ls.maxItems)
+				ls.paging.pagesToCrawl = ls.paging.getNextPages(ls.Filters.MaxItems)
 
 				q, _ := queue.New(1, &queue.InMemoryQueueStorage{MaxSize: 1000})
 
@@ -103,7 +103,7 @@ func onScraped(col Collector, ls *Container) func(resp *colly.Response) {
 		}
 
 		// skip if current page is outside the filtered range (should be only page 1)
-		if !ls.paging.pageIsValid(currentPage, ls.maxItems) {
+		if !ls.paging.pageIsValid(currentPage, ls.Filters.MaxItems) {
 			log.WithFields(map[string]interface{}{
 				"page":  currentPage,
 				"range": ls.paging.pagesToCrawl,

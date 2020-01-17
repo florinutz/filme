@@ -68,7 +68,7 @@ func Test_paging_getNextPages(t *testing.T) {
 				itemsPerPage: 3,
 			},
 			args:      args{2},
-			wantPages: []int{3},
+			wantPages: []int{3, 4, 5},
 		},
 	}
 	for _, tt := range tests {

@@ -1,9 +1,9 @@
 package list
 
 import (
-	"fmt"
 	"io"
 	"net/url"
+	"os"
 	"sort"
 
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
@@ -19,19 +19,17 @@ type Container struct {
 	Out          io.Writer
 	Log          logrus.Entry
 	Data         map[int][]*line.Line // stores pages
-	maxItems     int
 	itemsWritten int
 	paging       *Paging
 }
 
 func NewList(inputs input.ListingInput, filters filter.Filter, out io.Writer, logger logrus.Entry) *Container {
 	return &Container{
-		Inputs:   inputs,
-		Filters:  filters,
-		Log:      logger,
-		Out:      out,
-		Data:     map[int][]*line.Line{},
-		maxItems: int(filters.MaxItems),
+		Inputs:  inputs,
+		Filters: filters,
+		Log:     logger,
+		Out:     out,
+		Data:    map[int][]*line.Line{},
 		paging: &Paging{ // fill what's available here, while filling the rest when the first pagination is detected
 			filterLow:  int(filters.Pages.Min),
 			filterHigh: int(filters.Pages.Max),
@@ -56,10 +54,10 @@ func (l *Container) Display(w io.Writer) {
 
 		log.Debug("displaying page")
 
-		pageOutOfRange := !l.paging.pageIsValid(page, l.maxItems)
+		pageOutOfRange := !l.paging.pageIsValid(page, l.Filters.MaxItems)
 		if pageOutOfRange {
 			log.WithField("range", l.paging.pagesToCrawl).Debug("page out of range, skipping it")
-			break
+			continue
 		}
 
 		for i, ln := range l.Data[page] {
@@ -72,23 +70,14 @@ func (l *Container) Display(w io.Writer) {
 				continue
 			}
 
-			maxItemsReached := l.maxItems > 0 && l.itemsWritten >= l.maxItems
+			maxItemsReached := l.Filters.MaxItems > 0 && l.itemsWritten >= l.Filters.MaxItems
 			if maxItemsReached {
-				log.WithField("max", l.maxItems).Debug("max limit of items to display reached, stopping")
+				log.WithField("max", l.Filters.MaxItems).Debug("max limit of items to display reached, stopping")
 				break
 			}
 
-			fmt.Fprintf(w, "%d - %d: %s\n\t%s\n\tsize: %s, seeders: %d, leeches: %d\n\n",
-				page,
-				i+1,
-				ln.Item.Name,
-				ln.Item.Href,
-				ln.Item.Size,
-				ln.Item.Seeders,
-				ln.Item.Leechers)
-
-			for _, err := range ln.Errs {
-				fmt.Fprintf(w, "line error: %s", err)
+			if err := tpls.ExecuteTemplate(os.Stdout, "line", ln); err != nil {
+				log.WithError(err).Fatal("error rendering list")
 			}
 
 			l.itemsWritten++
