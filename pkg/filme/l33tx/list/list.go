@@ -1,9 +1,10 @@
 package list
 
 import (
-	"fmt"
 	"io"
 	"net/url"
+	"os"
+	"sort"
 
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/input"
@@ -17,7 +18,9 @@ type Container struct {
 	Filters      filter.Filter
 	Out          io.Writer
 	Log          logrus.Entry
-	ItemsWritten int
+	Data         map[int][]*line.Line // stores pages
+	itemsWritten int
+	paging       *Paging
 }
 
 func NewList(inputs input.ListingInput, filters filter.Filter, out io.Writer, logger logrus.Entry) *Container {
@@ -26,6 +29,11 @@ func NewList(inputs input.ListingInput, filters filter.Filter, out io.Writer, lo
 		Filters: filters,
 		Log:     logger,
 		Out:     out,
+		Data:    map[int][]*line.Line{},
+		paging: &Paging{ // fill what's available here, while filling the rest when the first pagination is detected
+			filterLow:  int(filters.Pages.Min),
+			filterHigh: int(filters.Pages.Max),
+		},
 	}
 }
 
@@ -33,75 +41,56 @@ func (l *Container) GetStartUrl() (*url.URL, error) {
 	return l.Inputs.GetStartUrl()
 }
 
-// WriteHeader will be called once at the beginning
-func (l *Container) WriteHeader(w io.Writer) {
-	//
-}
-
-// WritePage will be called in loop for every new bunch of items retrieved
-func (l *Container) WritePage(w io.Writer, lines []*line.Line, pagination *Pagination, paging Paging,
-	r *colly.Response, logger logrus.Entry) (itemsWritten int) {
-	var currentPage int
-
-	if pagination != nil {
-		l.Log.WithFields(map[string]interface{}{
-			"pagination_current": pagination.Current,
-			"pagination_count":   pagination.PagesCount,
-		}).Debug("pagination found")
-		currentPage = pagination.Current
-	} else {
-		l.Log.Debugf("single page, no pagination")
-		currentPage = 1
+func (l *Container) Display(w io.Writer) {
+	var pages []int
+	for pageNo, _ := range l.Data {
+		pages = append(pages, pageNo)
 	}
 
-	if len(lines) > 0 {
-		fmt.Fprintln(w, "")
-	}
+	sort.Ints(pages)
 
-	for i, ln := range lines {
-		log := l.Log.WithField("item", ln.Item)
-		if errs := ln.Item.Validate(l.Filters); len(errs) > 0 {
-			for _, err := range errs {
-				log.WithError(err).Debug("item validation err")
-			}
+	for _, page := range pages {
+		log := l.Log.WithField("page", page)
+
+		log.Debug("displaying page")
+
+		pageOutOfRange := !l.paging.pageIsValid(page, l.Filters.MaxItems)
+		if pageOutOfRange {
+			log.WithField("range", l.paging.pagesToCrawl).Debug("page out of range, skipping it")
 			continue
 		}
 
-		currentItemOffset := i + 1 + l.ItemsWritten
-		maxItemsReached := l.Filters.MaxItems > 0 && currentItemOffset > int(l.Filters.MaxItems)
-		if maxItemsReached {
-			log.WithField("max", l.Filters.MaxItems).Debug("max limit of items to display reached, stopping")
-			break
+		for i, ln := range l.Data[page] {
+			log = log.WithField("item", i)
+
+			if errs := ln.Item.Validate(l.Filters); len(errs) > 0 {
+				for _, err := range errs {
+					log.WithError(err).Debug("item validation err")
+				}
+				continue
+			}
+
+			maxItemsReached := l.Filters.MaxItems > 0 && l.itemsWritten >= l.Filters.MaxItems
+			if maxItemsReached {
+				log.WithField("max", l.Filters.MaxItems).Debug("max limit of items to display reached, stopping")
+				break
+			}
+
+			if err := tpls.ExecuteTemplate(os.Stdout, "line", ln); err != nil {
+				log.WithError(err).Fatal("error rendering list")
+			}
+
+			l.itemsWritten++
 		}
-
-		pageOutOfRange := !paging.pageIsValid(currentPage, int(l.Filters.MaxItems))
-		if pageOutOfRange {
-			log.WithFields(map[string]interface{}{
-				"page":  currentPage,
-				"range": paging.pagesToCrawl,
-			}).Debug("page out of range, skipping it")
-			break
-		}
-
-		fmt.Fprintf(w, "%d: %s\n\t%s\n\tsize: %s, seeders: %d, leeches: %d\n\n",
-			currentPage,
-			ln.Item.Name,
-			ln.Item.Href,
-			ln.Item.Size,
-			ln.Item.Seeders,
-			ln.Item.Leechers)
-
-		for _, err := range ln.Errs {
-			fmt.Fprintf(w, "line error: %s", err)
-		}
-
-		itemsWritten++
 	}
-
-	return
 }
 
-// WriteFooter will be called once at the end
-func (l *Container) WriteFooter(w io.Writer) {
-	//
+// AddPage will be called in loop for every new bunch of items retrieved
+func (l *Container) AddPage(w io.Writer, lines []*line.Line, pagination *Pagination, r *colly.Response, logger logrus.Entry) {
+	currentPage := 1
+	if pagination != nil {
+		currentPage = pagination.Current
+	}
+
+	l.Data[currentPage] = lines
 }

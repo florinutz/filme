@@ -11,19 +11,23 @@ type Paging struct {
 
 // getNextPages returns the range of pages that should be scheduled for parsing.
 // Should only be called after a page was crawled.
-func (p Paging) getNextPages(wantedItems int) (pages []int) {
+func (p Paging) getNextPages(maxItems int) (pages []int) {
 	if p.filterLow > p.limitHigh {
 		return
 	}
 
-	wantedPages := (wantedItems-1)/p.itemsPerPage + 1
+	wantedPages := (maxItems-1)/p.itemsPerPage + 1
+
+	if p.filterHigh > 0 && p.filterLow > 0 {
+		wantedPages = p.filterHigh - p.filterLow + 1
+	}
 
 	if p.limitHigh < wantedPages+1 {
 		wantedPages = p.limitHigh - 1
 	}
 
 	bottom := p.limitLow
-	top := bottom + wantedPages
+	top := bottom + wantedPages - 1
 
 	if p.filterLow > bottom {
 		bottom = p.filterLow

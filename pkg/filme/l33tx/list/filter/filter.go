@@ -3,7 +3,7 @@ package filter
 import "github.com/spf13/pflag"
 
 type Filter struct {
-	MaxItems uint
+	MaxItems int
 	Seeders  *UintVal
 	Leechers *UintVal
 	Pages    *UintVal
@@ -31,8 +31,8 @@ func (f *Filter) GetLinkedFlagSet() *pflag.FlagSet {
 		f.Size = new(UintVal)
 	}
 
-	set.UintVarP(&f.MaxItems, "total", "t", 20, "specifies the maximum desired number of "+
-		"items to display.\nDefaults to one page's worth of items.")
+	set.IntVarP(&f.MaxItems, "total", "t", 0, "specifies the maximum desired number of "+
+		"items to display.\nOne page's worth of items is 20.")
 
 	set.UintVar(&f.Seeders.Max, "seeders-max", 0, "ignores items with more seeders")
 	set.UintVar(&f.Seeders.Min, "seeders-min", 0, "ignores items with less seeders")
@@ -50,7 +50,9 @@ func (f *Filter) GetLinkedFlagSet() *pflag.FlagSet {
 
 func (f *Filter) GetLogFields() (result map[string]interface{}) {
 	result = map[string]interface{}{}
-	result["filter_max_items"] = f.MaxItems
+	if f.MaxItems > 0 {
+		result["filter_max_items"] = f.MaxItems
+	}
 	if f.Seeders != nil {
 		if f.Seeders.Min != 0 {
 			result["filter_seeders_min"] = f.Seeders.Min

@@ -16,16 +16,13 @@ type PageCrawledCallback func(
 	w io.Writer,
 	lines []*line.Line,
 	pagination *Pagination,
-	paging Paging,
 	r *colly.Response,
 	logger logrus.Entry,
-) (itemsWritten int)
+)
 
 // ListCollector is a wrapper around the colly collector + listing page data
 type Collector struct {
 	*colly.Collector
-	paging        Paging
-	wantedItems   int
 	OnPageCrawled PageCrawledCallback
 	Log           logrus.Entry
 }
@@ -40,13 +37,8 @@ func NewCollector(
 	coll33tx.DomainConfig(c, ls.Log)
 
 	col := Collector{
-		Collector: c,
-		paging: Paging{ // fill what's available here, while filling the rest when the first pagination is detected
-			filterLow:  int(ls.Filters.Pages.Min),
-			filterHigh: int(ls.Filters.Pages.Max),
-		},
-		wantedItems:   int(ls.Filters.MaxItems),
-		OnPageCrawled: ls.WritePage,
+		Collector:     c,
+		OnPageCrawled: ls.AddPage,
 		Log:           ls.Log,
 	}
 
@@ -78,19 +70,18 @@ func onScraped(col Collector, ls *Container) func(resp *colly.Response) {
 			currentPage = pagination.Current
 
 			if currentPage == 1 {
-				col.paging.limitLow = 1
-				col.paging.limitHigh = pagination.PagesCount
-				col.paging.itemsPerPage, err = doc.CountItems()
-				if err != nil {
+				ls.paging.limitLow = 1
+				ls.paging.limitHigh = pagination.PagesCount
+				if ls.paging.itemsPerPage, err = doc.CountItems(); err != nil {
 					log.WithError(err).Fatal("could not count the value for items per page")
 					return
 				}
 
-				col.paging.pagesToCrawl = col.paging.getNextPages(col.wantedItems)
+				ls.paging.pagesToCrawl = ls.paging.getNextPages(ls.Filters.MaxItems)
 
 				q, _ := queue.New(1, &queue.InMemoryQueueStorage{MaxSize: 1000})
 
-				for _, pageNo := range col.paging.pagesToCrawl {
+				for _, pageNo := range ls.paging.pagesToCrawl {
 					if pageNo == 1 { // already crawled
 						continue
 					}
@@ -99,7 +90,6 @@ func onScraped(col Collector, ls *Container) func(resp *colly.Response) {
 
 					if err := q.AddURL(pageUrl); err != nil {
 						log.WithError(err).WithField("url", pageUrl).Error("can't add url to queue")
-
 					}
 
 					if err := col.Visit(pageUrl); err != nil {
@@ -113,10 +103,10 @@ func onScraped(col Collector, ls *Container) func(resp *colly.Response) {
 		}
 
 		// skip if current page is outside the filtered range (should be only page 1)
-		if !col.paging.pageIsValid(currentPage, col.wantedItems) {
+		if !ls.paging.pageIsValid(currentPage, ls.Filters.MaxItems) {
 			log.WithFields(map[string]interface{}{
 				"page":  currentPage,
-				"range": col.paging.pagesToCrawl,
+				"range": ls.paging.pagesToCrawl,
 			}).Debug("page out of range")
 			return
 		}
@@ -129,6 +119,6 @@ func onScraped(col Collector, ls *Container) func(resp *colly.Response) {
 		}
 
 		// perform callback on the bunch of lines extracted the valid page
-		ls.ItemsWritten += col.OnPageCrawled(ls.Out, lines, pagination, col.paging, resp, *log)
+		col.OnPageCrawled(ls.Out, lines, pagination, resp, *log)
 	}
 }

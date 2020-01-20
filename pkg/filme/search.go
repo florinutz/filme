@@ -34,6 +34,8 @@ func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters fi
 
 	col.Wait()
 
+	ls.Display(f.Out)
+
 	return nil
 }
 
