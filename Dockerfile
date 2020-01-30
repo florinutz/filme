@@ -1,16 +1,10 @@
-FROM golang:1.11 as builder
-COPY . /work
-COPY ./pkg/filme/tpl/google /work/templates/google
+FROM golang:1.13 AS build
 WORKDIR /work
-RUN useradd app
-RUN CGO_ENABLED=0 go build -ldflags="-w -s -X \"github.com/florinutz/filme/pkg.Version=built-by-docker\"" -o filme
+COPY . .
+RUN go mod download
+RUN CGO_ENABLED=0 go build -ldflags="-w -s -X \"github.com/florinutz/filme/pkg.Version=built-by-docker\"" -mod=readonly -v -o filme
 
-FROM scratch
-LABEL maintainer="florinutz@gmail.com"
-EXPOSE 14051/tcp
-COPY --from=builder /work/filme /usr/bin/filme
-COPY --from=builder /etc/passwd /etc/
-COPY --from=builder /work/templates/google /tpl/google
-ENV FILME_TPL_GOOGLE /tpl/google/*
-USER app
-ENTRYPOINT ["/usr/bin/filme"]
+FROM alpine:3.11
+RUN apk --no-cache add ca-certificates
+COPY --from=build /work/filme /
+ENTRYPOINT /filme serve
