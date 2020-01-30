@@ -92,5 +92,5 @@ dockers:
     # goreleaser is being run.
     # This field does not support wildcards, you can add an entire folder here
     # and use wildcards when you `COPY`/`ADD` in your Dockerfile.
-    #    extra_files:
-    #      - config.yml
+    extra_files:
+      - *
