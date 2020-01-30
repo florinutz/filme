@@ -1,11 +1,7 @@
 FROM golang:1.13 AS builder
 WORKDIR /work
-RUN pwd
-RUN ls -al
 COPY . ./
-RUN ls -al
 RUN go get ./...
-RUN ls -al
 RUN CGO_ENABLED=0 go build -ldflags="-w -s -X \"github.com/florinutz/filme/pkg.Version=built-by-docker\"" -mod=readonly -v -o filme
 
 FROM gcr.io/distroless/base

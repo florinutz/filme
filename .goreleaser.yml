@@ -46,3 +46,5 @@ dockers:
     image_templates:
       - "gcr.io/filme-266519/filme:latest"
       - "gcr.io/filme-266519/filme:{{ .Tag }}"
+    extra_files:
+      - .
