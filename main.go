@@ -49,6 +49,7 @@ func buildRootCommand() *cobra.Command {
 	cmd.AddCommand(
 		crawlCmd,
 		commands.BuildSearchCmd(f),
+		commands.BuildServeCmd(f),
 		commands.BuildCompletionCmd(f),
 		commands.BuildVersionCmd(f),
 	)
