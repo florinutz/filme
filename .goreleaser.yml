@@ -35,16 +35,35 @@ snapcrafts:
     name: filme
     publish: true
     summary: Movie torrenting helper utility
-    description: Filme parses torrent and film catalogs (1337x, google, imdb) and returns magnet links matched with film info
+    description: Filme parses torrent and film catalogs (1337x currently) and returns magnet links matched with film info
     grade: stable
     confinement: strict
     license: MIT
     base: core18
+    apps:
+      filme:
+        plugs: ["home", "network", "personal-files"]
+    plugs:
+      personal-files:
+        read:
+          - $HOME/.filme
+        write:
+          - $HOME/.filme
 
 dockers:
   -
     image_templates:
-      - "gcr.io/filme-266519/filme:latest"
-      - "gcr.io/filme-266519/filme:{{ .Tag }}"
+      - "gcr.io/filme-266519/{{.ProjectName}}:latest"
+      - "gcr.io/filme-266519/{{.ProjectName}}:{{ .Tag }}"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
     extra_files:
-      - .
+      - pkg
+      - commands
+      - main.go
+      - go.sum
+      - go.mod
