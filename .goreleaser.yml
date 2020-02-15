@@ -42,7 +42,7 @@ snapcrafts:
     base: core18
     apps:
       filme:
-        plugs: ["home", "network", "personal-files"]
+        plugs: ["home", "network"]
     plugs:
       personal-files:
         read:
