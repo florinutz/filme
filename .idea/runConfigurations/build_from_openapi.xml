@@ -1,0 +1,22 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="build from openapi" type="docker-deploy" factoryName="docker-image" server-name="Docker">
+    <deployment type="docker-image">
+      <settings>
+        <option name="command" value="generate -i /local/swagger.yml -g go -o /local/out/go" />
+        <option name="containerName" value="openapi-generator" />
+        <option name="entrypoint" value="" />
+        <option name="imageTag" value="openapitools/openapi-generator-cli" />
+        <option name="commandLineOptions" value="--rm" />
+        <option name="volumeBindings">
+          <list>
+            <DockerVolumeBindingImpl>
+              <option name="containerPath" value="/local" />
+              <option name="hostPath" value="$PROJECT_DIR$" />
+            </DockerVolumeBindingImpl>
+          </list>
+        </option>
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>
