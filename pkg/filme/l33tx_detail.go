@@ -55,7 +55,7 @@ leechers: %d`,
 				if err != nil {
 					log.WithError(err).WithField("title", torrent.Title).Fatal("omdb lookup failed")
 				}
-				fmt.Fprintln(f.Out, res.Search)
+				fmt.Fprintf(f.Out, "\n\n%s\n", res.Search)
 			} else {
 				log.Warn("no omdb api key")
 			}

@@ -16,6 +16,9 @@ run: binary ## builds and runs
 lint: ## run all the lint tools
 	golint ./...
 
+generate-api: ## generates go server code
+	oapi-codegen -generate types,client,chi-server,spec api/swagger.yml > api/Swagger/utils.go
+
 test: ## run all tests
 	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 

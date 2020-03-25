@@ -6,3 +6,5 @@ bin
 coverage.txt
 .vscode
 snap.login
+!.idea
+/.idea/workspace.xml
