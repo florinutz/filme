@@ -8,6 +8,10 @@ import (
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/input"
 )
 
+type Searcher interface {
+	Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter) error
+}
+
 func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter) error {
 	logFields := localLogFields(inputs, goIntoDetails, filters)
 	log := *f.Log.WithFields(logFields)
