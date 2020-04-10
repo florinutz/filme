@@ -3,7 +3,6 @@ package list
 import (
 	"io"
 	"net/url"
-	"os"
 	"sort"
 
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
@@ -74,7 +73,7 @@ func (l *Container) Display(w io.Writer) {
 				break
 			}
 
-			if err := tpls.ExecuteTemplate(os.Stdout, "line", ln); err != nil {
+			if err := tpls.ExecuteTemplate(w, "line", ln); err != nil {
 				log.WithError(err).Fatal("error rendering list")
 			}
 
