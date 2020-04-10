@@ -2,7 +2,6 @@ package list
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/florinutz/filme/pkg/collector/coll33tx"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/line"
@@ -13,11 +12,9 @@ import (
 
 // PageCrawledCallback represents callback code that has access to all page data
 type PageCrawledCallback func(
-	w io.Writer,
 	lines []*line.Line,
 	pagination *Pagination,
 	r *colly.Response,
-	logger logrus.Entry,
 )
 
 // ListCollector is a wrapper around the colly collector + listing page data
@@ -119,6 +116,6 @@ func onScraped(col Collector, ls *Container) func(resp *colly.Response) {
 		}
 
 		// perform callback on the bunch of lines extracted the valid page
-		col.OnPageCrawled(ls.Out, lines, pagination, resp, *log)
+		col.OnPageCrawled(lines, pagination, resp)
 	}
 }

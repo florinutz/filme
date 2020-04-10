@@ -16,7 +16,7 @@ func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters fi
 	logFields := localLogFields(inputs, goIntoDetails, filters)
 	log := *f.Log.WithFields(logFields)
 
-	ls := list.NewList(inputs, filters, f.Out, log)
+	ls := list.NewList(inputs, filters, log)
 
 	col := list.NewCollector(ls)
 

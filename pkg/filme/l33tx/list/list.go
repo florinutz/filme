@@ -16,19 +16,17 @@ import (
 type Container struct {
 	Inputs       input.ListingInput
 	Filters      filter.Filter
-	Out          io.Writer
 	Log          logrus.Entry
 	Data         map[int][]*line.Line // stores pages
 	itemsWritten int
 	paging       *Paging
 }
 
-func NewList(inputs input.ListingInput, filters filter.Filter, out io.Writer, logger logrus.Entry) *Container {
+func NewList(inputs input.ListingInput, filters filter.Filter, logger logrus.Entry) *Container {
 	return &Container{
 		Inputs:  inputs,
 		Filters: filters,
 		Log:     logger,
-		Out:     out,
 		Data:    map[int][]*line.Line{},
 		paging: &Paging{ // fill what's available here, while filling the rest when the first pagination is detected
 			filterLow:  int(filters.Pages.Min),
@@ -86,7 +84,7 @@ func (l *Container) Display(w io.Writer) {
 }
 
 // AddPage will be called in loop for every new bunch of items retrieved
-func (l *Container) AddPage(w io.Writer, lines []*line.Line, pagination *Pagination, r *colly.Response, logger logrus.Entry) {
+func (l *Container) AddPage(lines []*line.Line, pagination *Pagination, r *colly.Response) {
 	currentPage := 1
 	if pagination != nil {
 		currentPage = pagination.Current
