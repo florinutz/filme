@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/eefret/gomdb"
@@ -51,11 +52,20 @@ leechers: %d`,
 			if omdbApiKey, ok := os.LookupEnv("OMDB_API_KEY"); ok {
 				gomdbApi := gomdb.Init(omdbApiKey)
 				query := &gomdb.QueryData{Title: torrent.FilmCleanTitle, SearchType: gomdb.MovieSearch}
+				if torrent.Year > 0 {
+					query.Year = strconv.Itoa(torrent.Year)
+				}
 				res, err := gomdbApi.Search(query)
 				if err != nil {
 					log.WithError(err).WithField("title", torrent.Title).Fatal("omdb lookup failed")
 				}
-				fmt.Fprintf(f.Out, "\n\n%s\n", res.Search)
+				if len(res.Search) > 0 {
+					fmt.Fprintf(f.Out, "\n\nImdb info:\n")
+					for _, searchResult := range res.Search {
+						imdbLink := fmt.Sprintf("https://www.imdb.com/title/%s/", searchResult.ImdbID)
+						fmt.Fprintf(f.Out, "%s (%s) %s (%s)\n", imdbLink, searchResult.Year, searchResult.Title, searchResult.Type)
+					}
+				}
 			} else {
 				log.Warn("no omdb api key")
 			}

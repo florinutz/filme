@@ -16,7 +16,7 @@ func Build1337xDetailPageCmd(f *filme.Filme) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "1337x_detail <url>",
-		Short: "Parses the 1337x detail page",
+		Short: "Parses the 1337x detail page. Set OMDB_API_KEY if you want imdb info",
 
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

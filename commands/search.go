@@ -45,7 +45,10 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 				inputs.Search = what
 			}
 
-			return f.Search(opts.goIntoDetails, inputs, opts.filters)
+			logFields := getSearchLogFields(inputs, opts.goIntoDetails, opts.filters)
+			log := *f.Log.WithFields(logFields)
+
+			return f.Search(opts.goIntoDetails, inputs, opts.filters, log)
 		},
 	}
 
@@ -71,6 +74,31 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 	opts.sort = *defaultSort
 	cmd.Flags().VarP(&opts.sort, "sort", "s", fmt.Sprintf("one of: %s",
 		strings.Join(sort.GetAllValues(), ", ")))
+
+	return
+}
+
+func getSearchLogFields(inputs input.ListingInput, goIntoDetails bool, filters filter.Filter) (result map[string]interface{}) {
+	result = map[string]interface{}{
+		"search_inputs_sort": inputs.Sort,
+		"with_details":       goIntoDetails,
+	}
+	if inputs.Encoding != nil && *inputs.Encoding != 0 {
+		result["search_inputs_encoding"] = *inputs.Encoding
+	}
+	if inputs.Category != nil && *inputs.Category != 0 {
+		result["search_inputs_category"] = *inputs.Category
+	}
+	if inputs.Search != "" {
+		result["search"] = inputs.Search
+	}
+	if inputs.URL != nil {
+		result["search_inputs_url"] = inputs.URL.String()
+	}
+
+	for key, v := range filters.GetLogFields() {
+		result[key] = v
+	}
 
 	return
 }

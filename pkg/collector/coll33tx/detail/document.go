@@ -23,6 +23,7 @@ const (
 )
 
 var imdbRe = regexp.MustCompile(`(?m)https?://(www\.)?imdb.com/title/tt(\d)+`)
+var yearRe = regexp.MustCompile(`20\d{2}`)
 
 type document struct {
 	*goquery.Document
@@ -211,6 +212,8 @@ func (doc *document) GetData() *Torrent {
 		log.WithError(err).Debug("missing title element")
 	}
 
+	t.Year = doc.getYear()
+
 	if t.Magnet, err = doc.getDetailsPageMagnet(); err != nil {
 		log.WithError(err).Debug("missing magnet")
 	}
@@ -252,4 +255,19 @@ func (doc *document) GetData() *Torrent {
 	t.IMDB, _ = doc.getDetailsPageImdb(imdbRe)
 
 	return t
+}
+
+// todo test
+func (doc *document) getYear() int {
+	title, err := doc.getDetailsPageTitle()
+	if err != nil {
+		return 0
+	}
+
+	year, err := strconv.Atoi(yearRe.FindString(title))
+	if err != nil {
+		return 0
+	}
+
+	return year
 }

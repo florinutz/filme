@@ -6,21 +6,19 @@ import (
 	"github.com/florinutz/filme/pkg/filme/l33tx/list"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/input"
+	log "github.com/sirupsen/logrus"
 )
 
 type Searcher interface {
-	Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter) error
+	Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter, logger log.Entry) error
 }
 
-func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter) error {
-	logFields := localLogFields(inputs, goIntoDetails, filters)
-	log := *f.Log.WithFields(logFields)
-
+func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter, log log.Entry) error {
 	ls := list.NewList(inputs, filters, log)
 
 	col := list.NewCollector(ls)
 
-	startUrl, err := ls.GetStartUrl()
+	startUrl, err := inputs.GetStartUrl()
 	if err != nil {
 		log.WithError(err).Errorln()
 		return fmt.Errorf("could not assemble the url: %w\n\n", err)
@@ -41,29 +39,4 @@ func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters fi
 	ls.Display(f.Out)
 
 	return nil
-}
-
-func localLogFields(inputs input.ListingInput, goIntoDetails bool, filters filter.Filter) (result map[string]interface{}) {
-	result = map[string]interface{}{
-		"search_inputs_sort": inputs.Sort,
-		"with_details":       goIntoDetails,
-	}
-	if inputs.Encoding != nil && *inputs.Encoding != 0 {
-		result["search_inputs_encoding"] = *inputs.Encoding
-	}
-	if inputs.Category != nil && *inputs.Category != 0 {
-		result["search_inputs_category"] = *inputs.Category
-	}
-	if inputs.Search != "" {
-		result["search"] = inputs.Search
-	}
-	if inputs.URL != nil {
-		result["search_inputs_url"] = inputs.URL.String()
-	}
-
-	for key, v := range filters.GetLogFields() {
-		result[key] = v
-	}
-
-	return
 }

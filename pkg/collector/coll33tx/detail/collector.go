@@ -67,4 +67,5 @@ type Torrent struct {
 	DateUploaded    string
 	Seeders         int
 	Leechers        int
+	Year            int
 }
