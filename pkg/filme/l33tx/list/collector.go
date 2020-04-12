@@ -97,15 +97,15 @@ func onScraped(col Collector, ls *Container) func(resp *colly.Response) {
 
 				q.Run(col.Collector)
 			}
-		}
 
-		// skip if current page is outside the filtered range (should be only page 1)
-		if !ls.paging.pageIsValid(currentPage, ls.Filters.MaxItems) {
-			log.WithFields(map[string]interface{}{
-				"page":  currentPage,
-				"range": ls.paging.pagesToCrawl,
-			}).Debug("page out of range")
-			return
+			// skip if current page is outside the filtered range (should be only page 1)
+			if !ls.paging.pageIsValid(currentPage, ls.Filters.MaxItems) {
+				log.WithFields(map[string]interface{}{
+					"page":  currentPage,
+					"range": ls.paging.pagesToCrawl,
+				}).Debug("page out of range")
+				return
+			}
 		}
 
 		// extract lines

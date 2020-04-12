@@ -50,6 +50,10 @@ func (p Paging) getNextPages(maxItems int) (pages []int) {
 }
 
 func (p Paging) pageIsValid(pageNo, wantedItems int) bool {
+	if wantedItems == 0 && pageNo == 1 {
+		return true
+	}
+
 	neededPages := p.getNextPages(wantedItems)
 	if len(neededPages) == 0 {
 		return false
