@@ -28,10 +28,9 @@ func init() {
 	tpls = template.Must(template.New("").Funcs(funcMap).Parse(`{{ define "line" }}
 {{.Item.Name | highlight}} ({{.Item.Size | bold}}, {{.Item.Seeders}} seeders, {{.Item.Leechers}} leechers): {{.Item.Href | bold}}
 {{- range .Errs}}
-    {{- .}}
+    {{.}}
 {{end -}}
-{{ end }}
-`))
+{{ end }}`))
 }
 
 func DisplayLines(lines []line.Line) {

@@ -1,8 +1,11 @@
 package coll33tx
 
 import (
+	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"runtime"
 	"time"
 
 	"github.com/florinutz/filme/pkg/collector"
@@ -14,10 +17,14 @@ import (
 
 // DomainConfig is a colly extension that configures both 1337x collectors
 func DomainConfig(c *colly.Collector, logEntry log.Entry) {
+	cacheDir := getCacheDir()
+
+	logEntry.WithField("cache_dir", cacheDir).Debug("using cache dir")
+
 	for _, f := range []func(collector *colly.Collector){
 		colly.MaxDepth(1),
 		colly.Async(true),
-		colly.CacheDir(".cache"),
+		colly.CacheDir(cacheDir),
 		colly.UserAgent("filme finder"),
 		colly.AllowedDomains("1337x.to"),
 		colly.Debugger(&collector.LogrusDebugger{Logger: logEntry.Logger}),
@@ -49,4 +56,28 @@ func DomainConfig(c *colly.Collector, logEntry log.Entry) {
 	}); err != nil {
 		logEntry.WithError(err).Fatal("failed while setting collector limit")
 	}
+}
+
+func getCacheDir() string {
+	p1 := fmt.Sprintf("%s/.cache", homeDir())
+	if _, err := os.Stat(p1); os.IsNotExist(err) {
+		_ = os.Mkdir(p1, 0750)
+	}
+	p2 := fmt.Sprintf("%s/filme", p1)
+	if _, err := os.Stat(p2); os.IsNotExist(err) {
+		_ = os.Mkdir(p2, 0750)
+	}
+
+	return p2
+}
+
+func homeDir() string {
+	if runtime.GOOS == "windows" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			home = os.Getenv("USERPROFILE")
+		}
+		return home
+	}
+	return os.Getenv("HOME")
 }

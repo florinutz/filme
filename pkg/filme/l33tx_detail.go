@@ -65,7 +65,7 @@ leechers: %d`,
 					fmt.Fprintf(f.Out, "\n\nImdb info:\n")
 					for _, searchResult := range res.Search {
 						imdbLink := fmt.Sprintf("https://www.imdb.com/title/%s/", searchResult.ImdbID)
-						fmt.Fprintf(f.Out, "%s (%s) %s (%s)\n", imdbLink, searchResult.Year, searchResult.Title, searchResult.Type)
+						fmt.Fprintf(f.Out, "%s (%s) %s\n", imdbLink, searchResult.Year, searchResult.Title)
 					}
 				}
 			} else {
