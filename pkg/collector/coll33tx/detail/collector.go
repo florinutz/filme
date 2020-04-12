@@ -46,6 +46,7 @@ func (col *Collector) OnScraped(r *colly.Response) {
 
 // Torrent represents the data found on a detail page
 type Torrent struct {
+	ID              int
 	Title           string
 	FilmCleanTitle  string
 	FilmLink        *url.URL

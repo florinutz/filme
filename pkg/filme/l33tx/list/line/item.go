@@ -3,6 +3,8 @@ package line
 import (
 	"fmt"
 	"net/url"
+	"regexp"
+	"strconv"
 
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 )
@@ -43,4 +45,17 @@ func (item *Item) Validate(f filter.Filter) (errs []error) {
 	}
 
 	return
+}
+
+var idRE = regexp.MustCompile(`/torrent/(\d+)/`)
+
+func (item *Item) GetID() int {
+	matches := idRE.FindStringSubmatch(item.Href.Path)
+
+	id, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return 0
+	}
+
+	return id
 }

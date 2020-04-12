@@ -22,8 +22,9 @@ const (
 	TestPageDetail = "https://1337x.to/torrent/3570061/House-Party-1990-WEBRip-1080p-YTS-YIFY/"
 )
 
-var imdbRe = regexp.MustCompile(`(?m)https?://(www\.)?imdb.com/title/tt(\d)+`)
-var yearRe = regexp.MustCompile(`20\d{2}`)
+var imdbRE = regexp.MustCompile(`(?m)https?://(www\.)?imdb.com/title/tt(\d)+`)
+var yearRE = regexp.MustCompile(`20\d{2}`)
+var idRE = regexp.MustCompile(`/torrent/(\d+)/`)
 
 type document struct {
 	*goquery.Document
@@ -208,6 +209,10 @@ func (doc *document) GetData() *Torrent {
 
 	var err error
 
+	if t.ID, err = doc.getID(); err != nil {
+		log.WithError(err).Warn("missing torrent id")
+	}
+
 	if t.Title, err = doc.getDetailsPageTitle(); err != nil {
 		log.WithError(err).Debug("missing title element")
 	}
@@ -252,7 +257,7 @@ func (doc *document) GetData() *Torrent {
 		log.WithError(err).Debug()
 	}
 
-	t.IMDB, _ = doc.getDetailsPageImdb(imdbRe)
+	t.IMDB, _ = doc.getDetailsPageImdb(imdbRE)
 
 	return t
 }
@@ -264,10 +269,21 @@ func (doc *document) getYear() int {
 		return 0
 	}
 
-	year, err := strconv.Atoi(yearRe.FindString(title))
+	year, err := strconv.Atoi(yearRE.FindString(title))
 	if err != nil {
 		return 0
 	}
 
 	return year
+}
+
+func (doc *document) getID() (int, error) {
+	matches := idRE.FindStringSubmatch(doc.Url.Path)
+
+	id, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return 0, errors.New("Coult not get torrent ID")
+	}
+
+	return id, nil
 }

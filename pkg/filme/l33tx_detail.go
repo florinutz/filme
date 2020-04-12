@@ -39,11 +39,13 @@ func (f *Filme) Visit1337xDetailPage(
 
 			fmt.Fprintf(f.Out, `%s
 
+id: %d
 magnet: %s
 
 seeders: %d
 leechers: %d`,
 				strings.Trim(torrent.Title, " "),
+				torrent.ID,
 				torrent.Magnet,
 				torrent.Seeders,
 				torrent.Leechers,
