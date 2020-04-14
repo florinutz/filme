@@ -1,8 +1,8 @@
 package list
 
 import (
-	"html/template"
 	"reflect"
+	"text/template"
 
 	"github.com/fatih/color"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/line"
