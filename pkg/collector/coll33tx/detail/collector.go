@@ -69,4 +69,6 @@ type Torrent struct {
 	Seeders         int
 	Leechers        int
 	Year            int
+	Quality         string
+	TitleInfo       coll33tx.TitleInfo
 }

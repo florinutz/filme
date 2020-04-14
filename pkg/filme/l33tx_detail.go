@@ -37,13 +37,15 @@ func (f *Filme) Visit1337xDetailPage(
 				return
 			}
 
-			fmt.Fprintf(f.Out, `%s
+			fmt.Fprintf(f.Out, `
+%s
 
 id: %d
 magnet: %s
 
 seeders: %d
-leechers: %d`,
+leechers: %d
+`,
 				strings.Trim(torrent.Title, " "),
 				torrent.ID,
 				torrent.Magnet,
@@ -53,13 +55,18 @@ leechers: %d`,
 
 			if omdbApiKey, ok := os.LookupEnv("OMDB_API_KEY"); ok {
 				gomdbApi := gomdb.Init(omdbApiKey)
+				// todo `filme search buy me a gun` returns 1 result instead of 2
+				if torrent.FilmCleanTitle == "" {
+					log.WithField("title", torrent.Title).Fatalln("missing clean title, " +
+						"can't look the film up on omdb")
+				}
 				query := &gomdb.QueryData{Title: torrent.FilmCleanTitle, SearchType: gomdb.MovieSearch}
 				if torrent.Year > 0 {
 					query.Year = strconv.Itoa(torrent.Year)
 				}
 				res, err := gomdbApi.Search(query)
 				if err != nil {
-					log.WithError(err).WithField("title", torrent.Title).Fatal("omdb lookup failed")
+					log.WithError(err).WithField("query", query).Fatal("omdb lookup failed")
 				}
 				if len(res.Search) > 0 {
 					fmt.Fprintf(f.Out, "\n\nImdb info:\n")

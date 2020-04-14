@@ -4,15 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"regexp"
+	"strconv"
 	"strings"
 
-	"github.com/florinutz/filme/pkg/collector"
-
-	"strconv"
-
-	"regexp"
-
 	"github.com/PuerkitoBio/goquery"
+	"github.com/florinutz/filme/pkg/collector"
+	"github.com/florinutz/filme/pkg/collector/coll33tx"
 	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
 )
@@ -214,10 +212,16 @@ func (doc *document) GetData() *Torrent {
 	}
 
 	if t.Title, err = doc.getDetailsPageTitle(); err != nil {
-		log.WithError(err).Debug("missing title element")
+		log.WithError(err).Fatal("missing title element")
 	}
 
-	t.Year = doc.getYear()
+	t.TitleInfo = coll33tx.ParseTitleInfo(t.Title)
+
+	t.Quality = t.TitleInfo.Quality
+
+	if t.Year = doc.getYear(); t.Year == 0 {
+		t.Year = t.TitleInfo.Year
+	}
 
 	if t.Magnet, err = doc.getDetailsPageMagnet(); err != nil {
 		log.WithError(err).Debug("missing magnet")
@@ -244,10 +248,12 @@ func (doc *document) GetData() *Torrent {
 
 	film, err := doc.getDetailsPageFilm()
 	if err != nil {
-		log.WithError(err).Debug()
+		log.WithError(err).Debug("missing film info box")
+		t.FilmCleanTitle = t.TitleInfo.Title
+	} else {
+		t.FilmCleanTitle = film.title
+		t.FilmLink = film.url
 	}
-	t.FilmCleanTitle = film.title
-	t.FilmLink = film.url
 
 	if t.Genres, err = doc.getDetailsPageFilmGenres(); err != nil {
 		log.WithError(err).Debug()
