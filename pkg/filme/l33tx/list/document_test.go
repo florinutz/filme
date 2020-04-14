@@ -3,7 +3,7 @@ package list
 import (
 	"testing"
 
-	"github.com/florinutz/filme/pkg/collector"
+	"github.com/florinutz/filme/pkg/collector/gz_http"
 )
 
 const (
@@ -11,20 +11,20 @@ const (
 )
 
 func Test_ListPage(t *testing.T) {
-	responseNoPagination, err := collector.MockResponse(
-		collector.GenerateRequestFromUrl(TestPageList),
+	responseNoPagination, err := gz_http.MockResponse(
+		gz_http.GenerateRequestFromUrl(TestPageList),
 		DataFile,
 	)
-	collector.FatalIfErr(err, t)
+	gz_http.FatalIfErr(err, t)
 	docNoPagination, err := NewDocument(responseNoPagination)
-	collector.FatalIfErr(err, t)
-	responseWithPagination, err := collector.MockResponse(
-		collector.GenerateRequestFromUrl(TestPageListWithPagination),
+	gz_http.FatalIfErr(err, t)
+	responseWithPagination, err := gz_http.MockResponse(
+		gz_http.GenerateRequestFromUrl(TestPageListWithPagination),
 		DataFile,
 	)
-	collector.FatalIfErr(err, t)
+	gz_http.FatalIfErr(err, t)
 	docWithPagination, err := NewDocument(responseWithPagination)
-	collector.FatalIfErr(err, t)
+	gz_http.FatalIfErr(err, t)
 
 	t.Run("pagination - response without pagination", func(t *testing.T) {
 		if docNoPagination.GetPagination() != nil {

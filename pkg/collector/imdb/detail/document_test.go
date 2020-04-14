@@ -3,7 +3,7 @@ package detail
 import (
 	"testing"
 
-	"github.com/florinutz/filme/pkg/collector"
+	"github.com/florinutz/filme/pkg/collector/gz_http"
 )
 
 const (
@@ -11,14 +11,14 @@ const (
 )
 
 func TestDetailPage_document_data(t *testing.T) {
-	r, err := collector.MockResponse(
-		collector.GenerateRequestFromUrl(TestPageFilm),
+	r, err := gz_http.MockResponse(
+		gz_http.GenerateRequestFromUrl(TestPageFilm),
 		DataFile,
 	)
-	collector.FatalIfErr(err, t)
+	gz_http.FatalIfErr(err, t)
 
 	doc, err := NewDocument(r, nil)
-	collector.FatalIfErr(err, t)
+	gz_http.FatalIfErr(err, t)
 
 	data := doc.GetData()
 

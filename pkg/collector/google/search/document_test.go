@@ -6,7 +6,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/florinutz/filme/pkg/collector"
+	"github.com/florinutz/filme/pkg/collector/gz_http"
 	"github.com/gocolly/colly"
 )
 
@@ -23,7 +23,7 @@ var (
 func init() {
 	var err error
 
-	r, err = collector.MockResponse(collector.GenerateRequestFromUrl(TestSearch), TestDataFile)
+	r, err = gz_http.MockResponse(gz_http.GenerateRequestFromUrl(TestSearch), TestDataFile)
 	if err != nil {
 		log.Fatal(err)
 	}

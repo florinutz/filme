@@ -5,7 +5,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/florinutz/filme/pkg/collector"
+	"github.com/florinutz/filme/pkg/collector/gz_http"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,15 +14,15 @@ const (
 )
 
 func TestDetailPage_document_data(t *testing.T) {
-	collyResponse, err := collector.MockResponse(collector.GenerateRequestFromUrl(TestPageDetail), DataFile)
+	collyResponse, err := gz_http.MockResponse(gz_http.GenerateRequestFromUrl(TestPageDetail), DataFile)
 	if err != nil {
-		collector.FatalIfErr(err, t)
+		gz_http.FatalIfErr(err, t)
 	}
 
 	blankLogEntry := logrus.NewEntry(logrus.New())
 	doc, err := NewDocument(collyResponse, *blankLogEntry)
 	if err != nil {
-		collector.FatalIfErr(err, t)
+		gz_http.FatalIfErr(err, t)
 	}
 
 	torrent := doc.GetData()

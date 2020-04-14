@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/florinutz/filme/pkg/collector"
+	"github.com/florinutz/filme/pkg/collector/gz_http"
 	"github.com/florinutz/filme/pkg/collector/imdb/detail"
 )
 
@@ -24,12 +24,12 @@ func main() {
 		outputPath = strings.Join(os.Args[1:], " ")
 	}
 
-	reqs, err := collector.GenerateSimpleRequests(urls, nil)
+	reqs, err := gz_http.GenerateSimpleRequests(urls, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	errs := collector.UpdateTestData(reqs, outputPath)
+	errs := gz_http.UpdateTestData(reqs, outputPath)
 	for _, err := range errs {
 		fmt.Fprintln(os.Stderr, err)
 	}

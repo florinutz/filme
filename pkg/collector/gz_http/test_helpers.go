@@ -1,12 +1,10 @@
-package collector
+package gz_http
 
 import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
-
-	gzBoltHttp "github.com/florinutz/gz-boltdb/http"
 
 	"github.com/gocolly/colly"
 )
@@ -15,7 +13,7 @@ const BucketName = "store"
 
 // MockResponse parses the responses db and returns the mock response for a request
 func MockResponse(request *http.Request, dataFile string) (response *colly.Response, err error) {
-	httpResponse, err := gzBoltHttp.GetResponseFor(dataFile, BucketName, request, func(r1, r2 *http.Request) bool {
+	httpResponse, err := GetResponseFor(dataFile, BucketName, request, func(r1, r2 *http.Request) bool {
 		return r1.URL.String() == r2.URL.String()
 	})
 	if err != nil {
@@ -40,7 +38,7 @@ func MockResponse(request *http.Request, dataFile string) (response *colly.Respo
 }
 
 func UpdateTestData(reqs []*http.Request, outputPath string) []error {
-	return gzBoltHttp.DumpResponses(reqs, outputPath, BucketName, nil, func(response *http.Response) error {
+	return DumpResponses(reqs, outputPath, BucketName, nil, func(response *http.Response) error {
 		fmt.Printf("* received %s\n", response.Request.URL.String())
 		return nil
 	})
