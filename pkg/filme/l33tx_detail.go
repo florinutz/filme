@@ -73,6 +73,7 @@ leechers: %d
 				if len(res.Search) > 0 {
 					fmt.Fprintf(f.Out, "\n\nImdb info:\n")
 					for _, searchResult := range res.Search {
+						// todo show imdb ratings
 						imdbLink := fmt.Sprintf("https://www.imdb.com/title/%s/", searchResult.ImdbID)
 						fmt.Fprintf(f.Out, "%s (%s) %s\n", imdbLink, searchResult.Year, searchResult.Title)
 					}

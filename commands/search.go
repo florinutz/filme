@@ -9,6 +9,7 @@ import (
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/search_category"
 	"github.com/florinutz/filme/pkg/config/value/1337x/list/sort"
 	"github.com/florinutz/filme/pkg/filme"
+	"github.com/florinutz/filme/pkg/filme/l33tx/list"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/input"
 	"github.com/spf13/cobra"
@@ -50,8 +51,17 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 			logFields := getSearchLogFields(inputs, opts.goIntoDetails, opts.filters)
 			log := *f.Log.WithFields(logFields)
 
-			return f.Search(opts.goIntoDetails, inputs, opts.filters,
-				opts.delay, opts.randomDelay, opts.parallelism, opts.userAgent, log)
+			ls := list.NewList(inputs, opts.filters, log)
+
+			f.Log = log.Logger
+			// populates the list
+			if err := f.Search(ls, opts.goIntoDetails, opts.delay, opts.randomDelay, opts.parallelism, opts.userAgent); err != nil {
+				return err
+			}
+
+			ls.Display(f.Out)
+
+			return nil
 		},
 	}
 
