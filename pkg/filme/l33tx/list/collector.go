@@ -27,11 +27,13 @@ type Collector struct {
 // NewCollector instantiates a list page collector
 func NewCollector(
 	ls *Container,
+	delay, randomDelay, parallelism int,
+	userAgent string,
 	options ...func(collector *colly.Collector),
 ) *Collector {
 	c := colly.NewCollector(options...)
 
-	coll33tx.DomainConfig(c, ls.Log)
+	coll33tx.DomainConfig(c, delay, randomDelay, parallelism, userAgent, ls.Log)
 
 	col := Collector{
 		Collector:     c,

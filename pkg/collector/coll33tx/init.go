@@ -16,7 +16,7 @@ import (
 )
 
 // DomainConfig is a colly extension that configures both 1337x collectors
-func DomainConfig(c *colly.Collector, logEntry log.Entry) {
+func DomainConfig(c *colly.Collector, delay, randomDelay, parallelism int, userAgent string, logEntry log.Entry) {
 	cacheDir := getCacheDir()
 
 	logEntry.WithField("cache_dir", cacheDir).Debug("using cache dir")
@@ -25,14 +25,18 @@ func DomainConfig(c *colly.Collector, logEntry log.Entry) {
 		colly.MaxDepth(1),
 		colly.Async(true),
 		colly.CacheDir(cacheDir),
-		colly.UserAgent("filme finder"),
 		colly.AllowedDomains("1337x.to"),
 		colly.Debugger(&collector.LogrusDebugger{Logger: logEntry.Logger}),
 	} {
 		f(c)
 	}
 
-	collyExtensions.RandomUserAgent(c)
+	if userAgent == "" {
+		collyExtensions.RandomUserAgent(c)
+	} else {
+		colly.UserAgent(userAgent)(c)
+	}
+
 	collyExtensions.Referer(c)
 
 	c.WithTransport(&http.Transport{
@@ -49,10 +53,10 @@ func DomainConfig(c *colly.Collector, logEntry log.Entry) {
 	})
 
 	if err := c.Limit(&colly.LimitRule{
-		Delay:       3 * time.Second,
-		RandomDelay: 3 * time.Second,
+		Delay:       time.Duration(delay) * time.Second,
+		RandomDelay: time.Duration(randomDelay) * time.Second,
+		Parallelism: parallelism,
 		DomainGlob:  "1337x.to",
-		Parallelism: 4,
 	}); err != nil {
 		logEntry.WithError(err).Fatal("failed while setting collector limit")
 	}

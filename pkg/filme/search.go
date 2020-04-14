@@ -10,13 +10,15 @@ import (
 )
 
 type Searcher interface {
-	Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter, logger log.Entry) error
+	Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter,
+		delay int, randomDelay int, parallelism int, userAgent string, log log.Entry) error
 }
 
-func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter, log log.Entry) error {
+func (f *Filme) Search(goIntoDetails bool, inputs input.ListingInput, filters filter.Filter,
+	delay int, randomDelay int, parallelism int, userAgent string, log log.Entry) error {
 	ls := list.NewList(inputs, filters, log)
 
-	col := list.NewCollector(ls)
+	col := list.NewCollector(ls, delay, randomDelay, parallelism, userAgent)
 
 	startUrl, err := inputs.GetStartUrl()
 	if err != nil {

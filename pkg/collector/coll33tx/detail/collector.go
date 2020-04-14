@@ -19,9 +19,11 @@ type Collector struct {
 	Log            log.Entry
 }
 
-func NewCollector(onTorrentFound OnTorrentFound, log log.Entry, options ...func(*colly.Collector)) *Collector {
+func NewCollector(onTorrentFound OnTorrentFound, delay, randomDelay, parallelism int, userAgent string,
+	log log.Entry, options ...func(*colly.Collector)) *Collector {
 	c := colly.NewCollector(options...)
-	coll33tx.DomainConfig(c, log)
+
+	coll33tx.DomainConfig(c, delay, randomDelay, parallelism, userAgent, log)
 
 	col := Collector{
 		Collector:      c,

@@ -17,11 +17,13 @@ import (
 // BuildSearchCmd mirrors the 1337x search cmd
 func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 	var opts struct {
-		goIntoDetails bool // todo implement this
-		sort          sort.Value
-		category      search_category.SearchCategory
-		filters       filter.Filter
-		encoding      encoding.ListEncoding
+		goIntoDetails                   bool // todo implement this
+		sort                            sort.Value
+		category                        search_category.SearchCategory
+		filters                         filter.Filter
+		encoding                        encoding.ListEncoding
+		delay, randomDelay, parallelism int
+		userAgent                       string
 	}
 
 	cmd = &cobra.Command{
@@ -48,7 +50,8 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 			logFields := getSearchLogFields(inputs, opts.goIntoDetails, opts.filters)
 			log := *f.Log.WithFields(logFields)
 
-			return f.Search(opts.goIntoDetails, inputs, opts.filters, log)
+			return f.Search(opts.goIntoDetails, inputs, opts.filters,
+				opts.delay, opts.randomDelay, opts.parallelism, opts.userAgent, log)
 		},
 	}
 
@@ -74,6 +77,11 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 	opts.sort = *defaultSort
 	cmd.Flags().VarP(&opts.sort, "sort", "s", fmt.Sprintf("one of: %s",
 		strings.Join(sort.GetAllValues(), ", ")))
+
+	cmd.Flags().IntVar(&opts.delay, "reqs-delay", 3, "requests delay")
+	cmd.Flags().IntVar(&opts.randomDelay, "reqs-random-delay", 3, "requests random delay")
+	cmd.Flags().IntVar(&opts.parallelism, "reqs-parallelism", 4, "requests parallelism")
+	cmd.Flags().StringVar(&opts.userAgent, "user-agent", "", "requests user agent. Leave this empty for random browser UAs")
 
 	return
 }

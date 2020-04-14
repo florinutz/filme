@@ -15,6 +15,8 @@ func (f *Filme) Visit1337xDetailPage(
 	pageUrl string,
 	justMagnet bool,
 	jsonOutput bool,
+	delay, randomDelay, parallelism int,
+	userAgent string,
 ) error {
 	log := f.Log.WithField("url", pageUrl)
 
@@ -81,7 +83,7 @@ leechers: %d
 
 		}
 
-		col := detail.NewCollector(OnTorrentFound, *log)
+		col := detail.NewCollector(OnTorrentFound, delay, randomDelay, parallelism, userAgent, *log)
 		if err := col.Visit(pageUrl); err != nil {
 			log.WithError(err).Fatal("visit error")
 		}
