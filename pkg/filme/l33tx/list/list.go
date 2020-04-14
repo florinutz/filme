@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/url"
 	"sort"
+	"sync"
 
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/filter"
 	"github.com/florinutz/filme/pkg/filme/l33tx/list/input"
@@ -82,8 +83,17 @@ func (l *Container) Display(w io.Writer) {
 	}
 }
 
+var mux *sync.RWMutex
+
+func init() {
+	mux = new(sync.RWMutex)
+}
+
 // AddPage will be called in loop for every new bunch of items retrieved
 func (l *Container) AddPage(lines []*line.Line, pagination *Pagination, r *colly.Response) {
+	mux.Lock()
+	defer mux.Unlock()
+
 	currentPage := 1
 	if pagination != nil {
 		currentPage = pagination.Current
