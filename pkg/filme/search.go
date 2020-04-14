@@ -7,13 +7,10 @@ import (
 )
 
 type Searcher interface {
-	Search(ls *list.Container, goIntoDetails bool, delay int, randomDelay int, parallelism int, userAgent string) error
+	Search(ls *list.Container, goIntoDetails bool, col *list.Collector) error
 }
 
-func (f *Filme) Search(ls *list.Container, goIntoDetails bool, delay int, randomDelay int, parallelism int,
-	userAgent string) error {
-	col := list.NewCollector(ls, delay, randomDelay, parallelism, userAgent)
-
+func (f *Filme) Search(ls *list.Container, goIntoDetails bool, col *list.Collector) error {
 	startUrl, err := ls.Inputs.GetStartUrl()
 	if err != nil {
 		f.Log.WithError(err).Errorln()
@@ -31,8 +28,6 @@ func (f *Filme) Search(ls *list.Container, goIntoDetails bool, delay int, random
 	}
 
 	col.Wait()
-
-	ls.Display(f.Out)
 
 	return nil
 }

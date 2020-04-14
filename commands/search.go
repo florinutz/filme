@@ -53,9 +53,11 @@ func BuildSearchCmd(f *filme.Filme) (cmd *cobra.Command) {
 
 			ls := list.NewList(inputs, opts.filters, log)
 
-			f.Log = log.Logger
+			f.Log = log.Logger //  with logFields
+			col := list.NewCollector(ls, opts.delay, opts.randomDelay, opts.parallelism, opts.userAgent)
+
 			// populates the list
-			if err := f.Search(ls, opts.goIntoDetails, opts.delay, opts.randomDelay, opts.parallelism, opts.userAgent); err != nil {
+			if err := f.Search(ls, opts.goIntoDetails, col); err != nil {
 				return err
 			}
 
