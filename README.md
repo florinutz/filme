@@ -29,7 +29,6 @@ sudo mv build/filme-linux-amd64 /usr/local/bin/filme
 
 ## Usage
 
-## Examples
 #### Search
 List all items matching "1080p". Crawl first 20 pages:
 
