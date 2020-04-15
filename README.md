@@ -10,8 +10,6 @@ It can search for torrents (`filme help search`) and display details about any o
 
 ## Install
 
-### snap
-
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-white.svg)](https://snapcraft.io/filme)
 
 ```bash
