@@ -7,6 +7,8 @@ require (
 	github.com/antchfx/htmlquery v1.2.2 // indirect
 	github.com/antchfx/xmlquery v1.2.3 // indirect
 	github.com/antchfx/xpath v1.1.5 // indirect
+	github.com/chromedp/cdproto v0.0.0-20200424080200-0de008e41fa0
+	github.com/chromedp/chromedp v0.5.3
 	github.com/eefret/gomdb v0.0.0-20171206153129-8a1e0abd4449
 	github.com/fatih/color v1.9.0
 	github.com/florinutz/gz-boltdb v0.0.0-20191203175517-1b4fb1f7d398

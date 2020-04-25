@@ -39,19 +39,32 @@ func buildRootCommand() *cobra.Command {
 
 	cmd.PersistentFlags().BoolVar(&f.DebugReportCaller, "debug-report-caller", false, "show debug callers")
 
-	crawlCmd := commands.BuildCrawlCmd(f)
-	crawlCmd.AddCommand(
-		commands.BuildImdbDetailPageCmd(f),
-		// commands.BuildGoogleCmd(f),
-	)
+	var crawlGroupCmd, rarbgGroupCmd *cobra.Command
+
+	{
+		crawlGroupCmd = &cobra.Command{
+			Use:   "crawl",
+			Short: "crawl commands",
+		}
+		crawlGroupCmd.AddCommand(
+			commands.BuildImdbDetailPageCmd(f),
+			// commands.BuildGoogleCmd(f),
+		)
+		rarbgGroupCmd = &cobra.Command{
+			Use:   "rarbg",
+			Short: "rarbg commands",
+		}
+	}
 
 	cmd.AddCommand(
-		crawlCmd,
+		crawlGroupCmd,
+		rarbgGroupCmd,
 		commands.BuildSearchCmd(f),
 		commands.Build1337xDetailPageCmd(f),
 		commands.BuildServeCmd(f),
 		commands.BuildCompletionCmd(f),
 		commands.BuildVersionCmd(f),
+		commands.BuildScreenshotCmd(f),
 	)
 
 	return cmd
