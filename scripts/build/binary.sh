@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eu -o pipefail
+#set -eu -o pipefail
 
 source ./scripts/build/.variables.sh
 

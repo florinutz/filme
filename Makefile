@@ -8,7 +8,7 @@ FILME_BASE ?= $(pwd)
 all: test binary ## tests and builds the binary. can be used in ci
 
 binary: ## build binary for Linux
-	./scripts/build/binary.sh
+	scripts/build/binary.sh
 
 run: binary ## builds and runs
 	./bin $(ARGS)
