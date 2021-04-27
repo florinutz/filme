@@ -1,0 +1,23 @@
+syntax = "proto3";
+option go_package = "torrents/crawl;proto";
+
+package filme.grpc;
+
+import "google/protobuf/timestamp.proto";
+
+service Torrents {
+  rpc Search(SearchRequest) returns (SearchResponse) {}
+}
+
+message SearchRequest {
+  string term = 1;
+}
+
+message SearchResponse {
+  string term = 1;
+}
+
+message ShortTorrent {
+  string title = 1;
+  google.protobuf.Timestamp created_at = 2;
+}

@@ -1,19 +1,37 @@
 package commands
 
 import (
+	"context"
 	"fmt"
-	"net/http"
+	"time"
+
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+
 	"os"
 	"strconv"
+
+	"github.com/florinutz/filme/infra/proto"
+
+	"github.com/asim/go-micro/v3"
 
 	"github.com/florinutz/filme/pkg/filme"
 	"github.com/spf13/cobra"
 )
 
-// BuildSearchCmd mirrors the 1337x search cmd
+type Crawler struct{}
+
+func (c Crawler) Search(ctx context.Context, request *proto.SearchRequest, response *proto.SearchResponse) error {
+	log.Infof("Received a Search request for term \"%s\"", request.Term)
+	response.Term = fmt.Sprintf("ecce %s", request.Term)
+	return nil
+}
+
+// BuildServeCmd mirrors the 1337x search cmd
 func BuildServeCmd(f *filme.Filme) (cmd *cobra.Command) {
 	var opts struct {
 		port int
+		nats string
 	}
 
 	cmd = &cobra.Command{
@@ -21,34 +39,52 @@ func BuildServeCmd(f *filme.Filme) (cmd *cobra.Command) {
 		Short: "serve search over http endpoints",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			f.Log.Println("Hello filme sample started.")
+			go func() {
+				for {
+					grpc.DialContext(context.TODO(), "127.0.0.1:9091")
+					time.Sleep(time.Second)
+				}
+			}()
 
-			http.HandleFunc("/", f.HttpHandler())
+			service := micro.NewService(
+				micro.Name("crawl"),
+				micro.Version("latest"),
+			)
+			service.Init(micro.AfterStart(func() error {
+				log.Infof("service listening on %s!",
+					service.Options().Server.Options().Address,
+				)
+				return nil
+			}))
 
-			port := os.Getenv("PORT")
-			if port == "" {
-				port = "8080"
+			if err := proto.RegisterTorrentsHandler(service.Server(), new(Crawler)); err != nil {
+				return err
 			}
 
-			return http.ListenAndServe(fmt.Sprintf(":%d", opts.port), nil)
+			if err := service.Run(); err != nil {
+				log.Fatal(err)
+			}
+
+			return nil
 		},
 	}
 
 	var (
 		portStr string
-		port    int
 		err     error
 	)
 
 	if portStr = os.Getenv("PORT"); portStr == "" {
 		portStr = "8080"
 	}
-
-	if port, err = strconv.Atoi(portStr); err != nil {
+	if opts.port, err = strconv.Atoi(portStr); err != nil {
 		f.Log.Fatalf("port not int")
 	}
 
-	cmd.Flags().IntVarP(&opts.port, "port", "p", port, "listen port")
+	opts.nats = os.Getenv("NATS_DSN")
+
+	cmd.Flags().IntVarP(&opts.port, "port", "p", opts.port, "listen port")
+	cmd.Flags().StringVarP(&opts.nats, "nats-host", "n", opts.nats, "listen port")
 
 	return
 }

@@ -1,0 +1,1 @@
+Check out the [install steps](https://github.com/nats-io/nats-operator) for the operator. Basically these 2 files here were downloaded and ran locally in order to change the install namespace to 'filme'.
