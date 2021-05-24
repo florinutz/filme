@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	. "github.com/florinutz/filme/cmd"
 	"github.com/florinutz/filme/pkg/config/value"
 	"github.com/florinutz/filme/pkg/filme"
 	"github.com/sirupsen/logrus"
@@ -46,7 +47,7 @@ func buildRootCommand() *cobra.Command {
 			Short: "crawl commands",
 		}
 		crawlGroupCmd.AddCommand(
-			cmd.BuildImdbDetailPageCmd(f),
+			BuildImdbDetailPageCmd(f),
 			// commands.BuildGoogleCmd(f),
 		)
 		rarbgGroupCmd = &cobra.Command{
@@ -58,12 +59,12 @@ func buildRootCommand() *cobra.Command {
 	cmd.AddCommand(
 		crawlGroupCmd,
 		rarbgGroupCmd,
-		cmd.BuildSearchCmd(f),
-		cmd.Build1337xDetailPageCmd(f),
-		cmd.BuildServeCmd(f),
-		cmd.BuildCompletionCmd(f),
-		cmd.BuildVersionCmd(f),
-		cmd.BuildScreenshotCmd(f),
+		BuildSearchCmd(f),
+		Build1337xDetailPageCmd(f),
+		BuildServeCmd(f),
+		BuildCompletionCmd(f),
+		BuildVersionCmd(f),
+		BuildScreenshotCmd(f),
 	)
 
 	return cmd
