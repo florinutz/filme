@@ -1,4 +1,4 @@
-package commands
+package cmd
 
 import (
 	"github.com/florinutz/filme/pkg/filme"
